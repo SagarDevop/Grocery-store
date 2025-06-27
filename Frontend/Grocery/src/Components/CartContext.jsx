@@ -15,7 +15,7 @@ export const CartProvider = ({ children }) => {
    useEffect(() => {
     if (user) {
       axios
-        .get(`http://localhost:5000/api/cart/${user.email}`)
+        .get(`https://grocery-store-ue2n.onrender.com/api/cart/${user.email}`)
         .then((res) => setCart(res.data.cart || []))
         .catch((err) => console.error("Failed to fetch cart:", err));
     } else {
@@ -25,7 +25,7 @@ export const CartProvider = ({ children }) => {
 
   const syncCart = (updatedCart) => {
     if (!user) return;
-    axios.post("http://localhost:5000/api/cart/update", {
+    axios.post("https://grocery-store-ue2n.onrender.com/api/cart/update", {
       email: user.email,
       cart: updatedCart,
     });
