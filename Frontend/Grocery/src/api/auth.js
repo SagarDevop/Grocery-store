@@ -1,7 +1,7 @@
 // src/api/auth.js
 import axios from "axios";
 
-const BASE_URL = "http://localhost:5000"; // Flask running on port 5000
+const BASE_URL = "https://grocery-store-ue2n.onrender.com"; 
 
 export const signup = (data) => axios.post(`${BASE_URL}/signup`, data);
 
