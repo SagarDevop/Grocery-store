@@ -121,6 +121,15 @@ export default function Navbar() {
       Admin Panel
     </Link>
   )}
+   {/* ✅ Seller‑only link */}
+          {user?.role === "seller" && (
+            <Link
+              to="/seller-dashboard"
+              className="text-green-700 border border-green-600 px-3 py-1 rounded-lg hover:bg-green-600 hover:text-white transition"
+            >
+              Seller Panel
+            </Link>
+          )}
 
             {/* User Icon or Avatar */}
             {user ? (
