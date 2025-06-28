@@ -12,6 +12,8 @@ import ProductDetail from './Components/ProductDetail'
 import AuthForm from './Components/AuthForm'
 import AdminDashboard from './Components/AdminDashboard'
 import SellerDashboard from './Seller/SellerDashboard'
+import AddProductForm from './Seller/AddProductForm'
+
 
 import { Routes, Route } from 'react-router-dom';
 
@@ -32,10 +34,9 @@ function App() {
         <Route path='/cart' element={<Cart/>} />
         <Route path='/seller' element={<BecomeSeller/>} />
         <Route path="/seller-dashboard" element={<SellerDashboard />} />
-
+        <Route path="/seller-dashboard/add-product" element={<AddProductForm />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/auth" element={<AuthForm />} />
-      
       </Routes>
      
     </>

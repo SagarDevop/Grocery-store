@@ -34,3 +34,5 @@ export const approveSeller = (id) =>
 export const rejectSeller = (id) =>
   axios.delete(`${BASE_URL}/reject-seller/${id}`);
 
+
+
