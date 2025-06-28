@@ -331,7 +331,8 @@ def login():
                 "name": user["name"],
                 "email": user["email"],
                 "is_admin": user.get("is_admin", False),
-                "role": role
+                 "role": user.get("role", "user")
+                
             }
         }), 200
 
@@ -407,18 +408,29 @@ def approve_seller(seller_id):
     if not seller:
         return jsonify({"message": "Seller not found"}), 404
 
-    # Move to sellers
+    # Move to sellers collection
     sellers_collection.insert_one({
-    **seller,
-    "role": "seller",
-    "approved_at": datetime.utcnow()
-})
+        **seller,
+        "role": "seller",
+        "approved_at": datetime.utcnow()
+    })
+
+    # Delete from pending_sellers
     pending_sellers.delete_one({"_id": ObjectId(seller_id)})
 
+    # ✅ Update role in users_collection if user exists
+    user = users_collection.find_one({"email": seller["email"]})
+    if user:
+        users_collection.update_one(
+            {"email": seller["email"]},
+            {"$set": {"role": "seller"}}
+        )
+
+    # Send confirmation email
     send_seller_email(seller["email"], "approved", seller["name"])
 
-
     return jsonify({"message": "Seller approved"}), 200
+
 
 @app.route('/reject-seller/<string:seller_id>', methods=['DELETE'])
 def reject_seller(seller_id):
