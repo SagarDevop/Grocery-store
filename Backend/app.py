@@ -29,6 +29,7 @@ pending_users = db["pending_users"]
 sellers_collection = db["sellers"]
 pending_sellers = db["pending_sellers"]
 users_collection = db["users"]
+products = db["products"]
 admin_user = {
     "name": "Admin",
     "email": "admin@grocery.com",
@@ -445,7 +446,28 @@ def reject_seller(seller_id):
 
     return jsonify({"message": "Seller rejected"}), 200
 
+# Seller side api 
 
+
+@app.route('/add-product', methods=['POST'])
+def add_product():
+    data = request.json
+
+    required_fields = ['seller_id', 'name', 'price', 'stock', 'category', 'images']
+    if not all(field in data for field in required_fields):
+        return jsonify({"error": "Missing fields"}), 400
+
+    data['created_at'] = datetime.utcnow()
+    result = products.insert_one(data)
+
+    return jsonify({"message": "Product added", "product_id": str(result.inserted_id)}), 201
+
+from bson.json_util import dumps
+
+@app.route('/products', methods=['GET'])
+def get_all_products():
+    all_products = list(products.find())
+    return dumps(all_products), 200
 
 
 

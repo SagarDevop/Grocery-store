@@ -76,7 +76,7 @@ export default function ContactUs() {
                 <h4 className="font-semibold">WhatsApp</h4>
                 {/* Floating WhatsApp Button */}
                 <a
-                  href="https://wa.me/919876543210"
+                  href="https://wa.me/917887263984"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="fixed bottom-6 right-6 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg z-50 transition-transform hover:scale-110"
