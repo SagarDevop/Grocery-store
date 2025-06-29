@@ -232,7 +232,7 @@ def verify_otp():
         return jsonify({"error": "Invalid OTP"}), 400
 
     # Insert verified user
-    users_collection.insert_one({
+    insert_result = users_collection.insert_one({
         "name": user["name"],
         "email": user["email"],
         "password": user["password"],
@@ -243,7 +243,16 @@ def verify_otp():
     # Delete from pending
     pending_users.delete_one({"email": email})
 
-    return jsonify({"message": "Account verified successfully"}), 200
+    return jsonify({
+    "message": "Account verified successfully",
+    "user": {
+        "_id": str(insert_result.inserted_id),
+        "name": user["name"],
+        "email": user["email"],
+        "is_admin": False,
+        "role": "user"
+    }
+}), 200
 
 @app.route("/forgot-password", methods=["POST"])
 def forgot_password():
@@ -329,12 +338,13 @@ def login():
         return jsonify({
             "message": "Login successful",
             "user": {
-                "name": user["name"],
-                "email": user["email"],
-                "is_admin": user.get("is_admin", False),
-                 "role": user.get("role", "user")
-                
-            }
+    "_id": str(user["_id"]),
+    "name": user["name"],
+    "email": user["email"],
+    "is_admin": user.get("is_admin", False),
+    "role": role
+}
+
         }), 200
 
     # If not found in users, maybe it's a seller-only account
@@ -347,12 +357,14 @@ def login():
 
         return jsonify({
             "message": "Login successful",
-            "user": {
-                "name": seller["name"],
-                "email": seller["email"],
-                "is_admin": False,
-                "role": "seller"
-            }
+           "user": {
+    "_id": str(seller["_id"]),
+    "name": seller["name"],
+    "email": seller["email"],
+    "is_admin": False,
+    "role": "seller"
+}
+
         }), 200
 
     return jsonify({"error": "User not found"}), 404

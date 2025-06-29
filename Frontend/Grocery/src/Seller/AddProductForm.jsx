@@ -5,6 +5,7 @@ import { Success, Error } from "../Utils/toastUtils.js";
 
 const AddProductForm = () => {
   const { user } = useAuth(); 
+  console.log("User from AuthContext:", user);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -48,6 +49,8 @@ const AddProductForm = () => {
     } catch (err) {
       Error("Failed to add product"); 
        console.error(err)
+       console.log("Submitting payload:", payload);
+
     }
   };
 
