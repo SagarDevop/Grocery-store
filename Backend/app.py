@@ -501,8 +501,16 @@ def get_product_by_id(product_id):
     
 @app.route('/products/category/<string:category_name>', methods=['GET'])
 def get_products_by_category(category_name):
-    products = products.find({"category": category_name})
-    return dumps(list(products)), 200
+    try:
+        matched_products = list(products.find({"category": category_name}))
+        for product in matched_products:
+            product["_id"] = str(product["_id"])
+            product["seller_id"] = str(product["seller_id"])
+        return jsonify(matched_products), 200
+    except Exception as e:
+        print("Error fetching category products:", e)
+        return jsonify({"error": "Internal server error"}), 500
+
 
 @app.route('/categories', methods=['GET'])
 def get_all_categories():
