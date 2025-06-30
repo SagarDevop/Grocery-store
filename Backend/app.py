@@ -499,6 +499,17 @@ def get_product_by_id(product_id):
     except Exception as e:
         return jsonify({"error": "Invalid product ID"}), 400
     
+@app.route('/products/category/<string:category_name>', methods=['GET'])
+def get_products_by_category(category_name):
+    products = products.find({"category": category_name})
+    return dumps(list(products)), 200
+
+@app.route('/categories', methods=['GET'])
+def get_all_categories():
+    categories = products.distinct("category")
+    return jsonify(categories), 200
+
+    
 
 @app.route("/", methods=["GET"])
 def index():

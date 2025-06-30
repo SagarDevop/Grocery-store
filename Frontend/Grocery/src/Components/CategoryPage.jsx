@@ -1,15 +1,28 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import allProducts from "../Data/allproducts.js"; 
-import ProductCard from "./ProductCard"; 
+import axios from "axios";
+import ProductCard from "./ProductCard";
 
 const CategoryPage = () => {
   const { name } = useParams();
   const decodedName = decodeURIComponent(name);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = allProducts.filter((product) =>
-    product.category.toLowerCase() === decodedName.toLowerCase()
-  );
+  useEffect(() => {
+    const fetchByCategory = async () => {
+      try {
+        const res = await axios.get(`https://grocery-store-ue2n.onrender.com/products/category/${decodedName}`);
+        setFilteredProducts(res.data);
+      } catch (err) {
+        console.error("❌ Error fetching category products:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchByCategory();
+  }, [decodedName]);
 
   return (
     <div className="px-[6vw] py-10">
@@ -17,7 +30,9 @@ const CategoryPage = () => {
         Showing results for: <span className="text-gray-700">{decodedName}</span>
       </h2>
 
-      {filteredProducts.length > 0 ? (
+      {loading ? (
+        <p>Loading...</p>
+      ) : filteredProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {filteredProducts.map((prod) => (
             <ProductCard key={prod._id} product={prod} />
