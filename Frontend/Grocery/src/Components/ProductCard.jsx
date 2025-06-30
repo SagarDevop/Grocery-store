@@ -6,9 +6,20 @@ import { useNavigate } from "react-router-dom";
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const showcard = () => {
-    navigate(`/product/${product.id}`);
-  };
+ const showcard = () => {
+  const productId =
+    typeof product._id === "object" && product._id.$oid
+      ? product._id.$oid
+      : product._id || product.id;
+
+  console.log("Navigating to product ID:", productId);
+  if (!productId) return console.error("❌ No product ID found");
+
+  navigate(`/product/${productId}`);
+};
+
+
+
 
   return (
     <div
