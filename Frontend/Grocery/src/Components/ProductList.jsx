@@ -14,7 +14,7 @@ const ProductList = () => {
   const [sortBy, setSortBy] = useState("default");
 
   useEffect(() => {
-    axios.get("http://localhost:5000/products")
+    axios.get("https://grocery-store-ue2n.onrender.com/products")
       .then((res) => setAllProducts(res.data))
       .catch((err) => console.error("Error fetching products", err));
   }, []);

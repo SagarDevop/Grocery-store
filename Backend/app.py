@@ -10,6 +10,8 @@ from bson.json_util import dumps
 from bson.objectid import ObjectId
 from dotenv import load_dotenv
 import os
+from bson.objectid import ObjectId
+from flask import jsonify
 
 load_dotenv()
 
@@ -479,9 +481,24 @@ from bson.json_util import dumps
 @app.route('/products', methods=['GET'])
 def get_all_products():
     all_products = list(products.find())
-    return dumps(all_products), 200
+    for product in all_products:
+        product['_id'] = str(product['_id'])  # Convert ObjectId to string
+        product['seller_id'] = str(product['seller_id'])  # Optional, if stored
+    return jsonify(all_products), 200
 
 
+@app.route('/products/<string:product_id>', methods=['GET'])
+def get_product_by_id(product_id):
+    try:
+        product = products.find_one({"_id": ObjectId(product_id)})
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+        product["_id"] = str(product["_id"])
+        product["seller_id"] = str(product["seller_id"])
+        return jsonify(product), 200
+    except Exception as e:
+        return jsonify({"error": "Invalid product ID"}), 400
+    
 
 @app.route("/", methods=["GET"])
 def index():
