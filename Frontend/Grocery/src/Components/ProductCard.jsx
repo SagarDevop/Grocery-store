@@ -12,9 +12,6 @@ const ProductCard = ({ product }) => {
       ? product._id.$oid
       : product._id || product.id;
 
-  console.log("Navigating to product ID:", productId);
-  if (!productId) return console.error("❌ No product ID found");
-
   navigate(`/product/${productId}`);
 };
 
@@ -27,7 +24,7 @@ const ProductCard = ({ product }) => {
       onClick={showcard}
     >
       <img
-        src={product.image}
+        src={product.images && product.images.length > 0 ? product.images[0] : product.image}
         alt={product.name}
         className="w-full h-32 object-cover rounded"
       />

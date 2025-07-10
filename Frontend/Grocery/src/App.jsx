@@ -33,8 +33,9 @@ function App() {
         <Route path="/contact" element={<ContactUs/>} />
         <Route path='/cart' element={<Cart/>} />
         <Route path='/seller' element={<BecomeSeller/>} />
-        <Route path="/seller-dashboard" element={<SellerDashboard />} />
-        <Route path="/seller-dashboard/add-product" element={<AddProductForm />} />
+        <Route path="/seller-dashboard" element={<SellerDashboard />}>
+          <Route path="add-product" element={<AddProductForm />} />
+        </Route>
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/auth" element={<AuthForm />} />
       </Routes>
