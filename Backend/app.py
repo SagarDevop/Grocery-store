@@ -46,7 +46,7 @@ if not users_collection.find_one({"email": admin_user["email"]}):
 
 # --- ROUTES ---
 
-from email.message import EmailMessage
+
 
 def send_otp_email_signup(receiver_email, otp):
     try:
@@ -516,6 +516,40 @@ def get_products_by_category(category_name):
 def get_all_categories():
     categories = products.distinct("category")
     return jsonify(categories), 200
+
+@app.route("/api/seller-dashboard-summary", methods=["GET"])
+def seller_dashboard_summary():
+    seller_id = request.args.get("sellerId")
+    if not seller_id:
+        return jsonify({"error": "Missing sellerId"}), 400
+
+    try:
+        seller_object_id = ObjectId(seller_id)
+    except:
+        return jsonify({"error": "Invalid seller ID"}), 400
+
+    # Fetch dynamic data
+    total_products = products.count_documents({"seller_id": seller_id})
+    orders_count = random.randint(20, 40)  # Replace with real orders collection later
+    earnings = total_products * 400  # Fake example (replace with actual earnings logic)
+    pending_orders = random.randint(0, 5)
+
+    notifications = []
+    out_of_stock_products = products.find({"seller_id": seller_id, "stock": {"$lte": 0}})
+    out_of_stock_count = out_of_stock_products.count()
+    if out_of_stock_count > 0:
+        notifications.append(f"{out_of_stock_count} products are out of stock.")
+
+    # Mock example: add new order notification
+    notifications.append("You have a new order.")
+
+    return jsonify({
+        "totalProducts": total_products,
+        "orders": orders_count,
+        "earnings": earnings,
+        "pendingOrders": pending_orders,
+        "notifications": notifications
+    })
 
     
 

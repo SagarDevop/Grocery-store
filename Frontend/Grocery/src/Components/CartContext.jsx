@@ -19,7 +19,7 @@ export const CartProvider = ({ children }) => {
         .then((res) => setCart(res.data.cart || []))
         .catch((err) => console.error("Failed to fetch cart:", err));
     } else {
-      setCart([]); // clear cart on logout
+      setCart([]); 
     }
   }, [user]);
 
