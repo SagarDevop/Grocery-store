@@ -523,24 +523,27 @@ def seller_dashboard_summary():
     if not seller_id:
         return jsonify({"error": "Missing sellerId"}), 400
 
+    # Optional: Only if your DB uses ObjectId
     try:
         seller_object_id = ObjectId(seller_id)
     except:
         return jsonify({"error": "Invalid seller ID"}), 400
 
-    # Fetch dynamic data
+    # Use seller_object_id only if it's needed
     total_products = products.count_documents({"seller_id": seller_id})
-    orders_count = random.randint(20, 40)  # Replace with real orders collection later
-    earnings = total_products * 400  # Fake example (replace with actual earnings logic)
+    orders_count = random.randint(20, 40)
+    earnings = total_products * 400
     pending_orders = random.randint(0, 5)
 
+    out_of_stock_count = products.count_documents({
+        "seller_id": seller_id,
+        "stock": {"$lte": 0}
+    })
+
     notifications = []
-    out_of_stock_products = products.find({"seller_id": seller_id, "stock": {"$lte": 0}})
-    out_of_stock_count = out_of_stock_products.count()
     if out_of_stock_count > 0:
         notifications.append(f"{out_of_stock_count} products are out of stock.")
 
-    # Mock example: add new order notification
     notifications.append("You have a new order.")
 
     return jsonify({
