@@ -5,8 +5,12 @@ import axios from "axios";
 
 const SellerDashboard = () => {
   const { user, logoutUser } = useAuth();
+  const [refreshFlag, setRefreshFlag] = useState(false);
+
+  
   const navigate = useNavigate();
   const location = useLocation();
+  
 
   const [dashboardData, setDashboardData] = useState({
     totalProducts: 0,
@@ -21,15 +25,16 @@ const SellerDashboard = () => {
   useEffect(() => {
     if (user && user.role === "seller") {
       axios
-        .get(`/api/seller-dashboard-summary?sellerId=${user._id}`)
+        .get(`https://grocery-store-ue2n.onrender.com/api/seller-dashboard-summary?sellerId=${user._id}`)
         .then((res) => {
           setDashboardData(res.data);
+          console.log("Dashboard data fetched successfully", res.data);
         })
         .catch((err) => {
           console.error("Error fetching dashboard data", err);
         });
     }
-  }, [user]);
+  }, [user,refreshFlag]);
 
   if (!user || user.role !== "seller") {
     navigate("/");
