@@ -410,7 +410,6 @@ def register_seller():
     pending_sellers.insert_one(data)
     return jsonify({"message": "Seller registration received"}), 201
 
-from bson.json_util import dumps
 
 @app.route('/pending-sellers', methods=['GET'])
 def get_pending_sellers():
@@ -476,7 +475,6 @@ def add_product():
 
     return jsonify({"message": "Product added", "product_id": str(result.inserted_id)}), 201
 
-from bson.json_util import dumps
 
 @app.route('/products', methods=['GET'])
 def get_all_products():
