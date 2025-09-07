@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../Components/AuthContext";
+import { useSelector, useDispatch } from "react-redux";
+import { logoutUser } from "../Redux/authSlice";
 import axios from "axios";
 
 const SellerDashboard = () => {
-  const { user, logoutUser } = useAuth();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
   const [refreshFlag, setRefreshFlag] = useState(false);
 
   
@@ -89,7 +91,10 @@ const SellerDashboard = () => {
           </li>
           <li>
             <button
-              onClick={logoutUser}
+              onClick={() => {
+                dispatch(logoutUser());
+                navigate("/");
+              }}
               className="text-red-500 hover:underline"
             >
               🚪 Logout

@@ -1,5 +1,4 @@
 import React from "react";
-import BestSellers from "./BestSellers";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
@@ -64,7 +63,7 @@ const CategoriesAndBestSellers = () => {
 
       {/* Best Sellers */}
       <h2 className="text-2xl font-semibold my-10 text-green-800">Best Sellers</h2>
-      <BestSellers />
+      
     </div>
   );
 };

@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useAuth } from "../Components/AuthContext";
+import { useSelector } from "react-redux";
 import { Success, Error } from "../Utils/toastUtils.js";
 
 const AddProductForm = () => {
-  const { user } = useAuth(); 
+  const user = useSelector((state) => state.auth.user);
   console.log("User from AuthContext:", user);
   const [formData, setFormData] = useState({
     name: "",
