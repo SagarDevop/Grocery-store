@@ -1,22 +1,39 @@
 import React from "react";
 import { ShoppingCart } from "lucide-react";
-import { useCart } from "../Components/CartContext";
+import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { addToCart } from "../Redux/cartSlice";
+import { syncCart } from "../Redux/cartThunks";
+import { useSelector } from "react-redux";
+import { Error, Success } from "../Utils/toastUtils";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
-  const { addToCart } = useCart();
- const showcard = () => {
-  const productId =
-    typeof product._id === "object" && product._id.$oid
-      ? product._id.$oid
-      : product._id || product.id;
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.items);
+  const user = useSelector((state) => state.auth.user);
 
-  navigate(`/product/${productId}`);
-};
+  const showcard = () => {
+    const productId =
+      typeof product._id === "object" && product._id.$oid
+        ? product._id.$oid
+        : product._id || product.id;
 
+    navigate(`/product/${productId}`);
+  };
 
+  const handleAddToCart = (e) => {
+    e.stopPropagation(); // Prevents the parent click
 
+    if (!user) {
+      Error("Please login to add items to cart");
+      return;
+    }
+
+    dispatch(addToCart(product));
+    dispatch(syncCart(user.email, [...cart, { ...product, quantity: 1 }]));
+    Success("Added to cart");
+  };
 
   return (
     <div
@@ -24,7 +41,11 @@ const ProductCard = ({ product }) => {
       onClick={showcard}
     >
       <img
-        src={product.images && product.images.length > 0 ? product.images[0] : product.image}
+        src={
+          product.images && product.images.length > 0
+            ? product.images[0]
+            : product.image
+        }
         alt={product.name}
         className="w-full h-32 object-cover rounded"
       />
@@ -36,10 +57,7 @@ const ProductCard = ({ product }) => {
 
       {/* Add to Cart Button */}
       <button
-        onClick={(e) => {
-          e.stopPropagation(); // Prevents the parent click
-          addToCart(product);
-        }}
+        onClick={handleAddToCart}
         className="mt-3 flex items-center gap-2 text-sm bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
       >
         <ShoppingCart size={16} /> Add to Cart

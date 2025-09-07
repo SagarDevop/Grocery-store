@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { useCart } from "../Components/CartContext";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+import { logoutUser as logoutAction } from "../Redux/authSlice"; // Redux logout
 import { Dialog } from "@headlessui/react";
 import { Success, Error } from "../Utils/toastUtils.js";
 import {
@@ -18,12 +18,13 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.items);
+  const user = useSelector((state) => state.auth.user); // Redux user
 
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { cart } = useCart();
-  const { user, logoutUser } = useAuth();
   const navigate = useNavigate();
 
   const navLinks = [
@@ -43,6 +44,13 @@ export default function Navbar() {
         setSearchTerm("");
       }
     }
+  };
+
+  const handleLogout = () => {
+    dispatch(logoutAction());
+    setIsDialogOpen(false);
+    Error("Logged out successfully");
+    navigate("/");
   };
 
   return (
@@ -113,23 +121,24 @@ export default function Navbar() {
                 )}
               </motion.div>
             </Link>
+
+            {/* Admin & Seller Links */}
             {user?.is_admin && (
-    <Link
-      to="/admin-dashboard"
-      className="hidden md:inline text-green-600 font-semibold hover:underline"
-    >
-      Admin Panel
-    </Link>
-  )}
-   {/* ✅ Seller‑only link */}
-          {user?.role === "seller" && (
-            <Link
-              to="/seller-dashboard"
-              className="text-green-700 border border-green-600 px-3 py-1 rounded-lg hover:bg-green-600 hover:text-white transition"
-            >
-              Seller Panel
-            </Link>
-          )}
+              <Link
+                to="/admin-dashboard"
+                className="hidden md:inline text-green-600 font-semibold hover:underline"
+              >
+                Admin Panel
+              </Link>
+            )}
+            {user?.role === "seller" && (
+              <Link
+                to="/seller-dashboard"
+                className="text-green-700 border border-green-600 px-3 py-1 rounded-lg hover:bg-green-600 hover:text-white transition"
+              >
+                Seller Panel
+              </Link>
+            )}
 
             {/* User Icon or Avatar */}
             {user ? (
@@ -166,18 +175,11 @@ export default function Navbar() {
                           <span className="font-medium">Name:</span> {user.name}
                         </p>
                         <p>
-                          <span className="font-medium">Email:</span>{" "}
-                          {user.email}
+                          <span className="font-medium">Email:</span> {user.email}
                         </p>
-                        {/* Add more fields here if needed */}
                       </div>
                       <button
-                        onClick={() => {
-                          logoutUser();
-                          setIsDialogOpen(false);
-                          Error("Logged out successfully");
-                          navigate("/");
-                        }}
+                        onClick={handleLogout}
                         className="mt-6 w-full bg-red-500 text-white py-2 rounded-lg hover:bg-red-600 transition"
                       >
                         Logout
@@ -258,7 +260,7 @@ export default function Navbar() {
                     <p className="text-sm text-gray-500">{user.email}</p>
                     <button
                       onClick={() => {
-                        logoutUser();
+                        dispatch(logoutAction());
                         setMobileOpen(false);
                         navigate("/");
                       }}
@@ -270,10 +272,7 @@ export default function Navbar() {
                 </li>
               )}
               {user?.is_admin && (
-                <Link
-                  to="/admin-dashboard"
-                  className="text-green-600 font-bold"
-                >
+                <Link to="/admin-dashboard" className="text-green-600 font-bold">
                   Admin Panel
                 </Link>
               )}

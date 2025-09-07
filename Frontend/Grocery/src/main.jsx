@@ -5,16 +5,19 @@ import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
 import App from "./App.jsx";
+import store  from "./Redux/Store";
+import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
-import { CartProvider } from "./Components/CartContext";
-import { AuthProvider } from "./Components/AuthContext";
 
 createRoot(document.getElementById("root")).render(
-  <BrowserRouter>
-      <AuthProvider>
-    <CartProvider>
-      <App />
-    </CartProvider>
-  </AuthProvider>,
-  </BrowserRouter>
+  <StrictMode>
+    <Provider store={store}>
+      <BrowserRouter>
+        
+          <App />
+        
+      </BrowserRouter>
+    </Provider>
+  </StrictMode>
 );
+

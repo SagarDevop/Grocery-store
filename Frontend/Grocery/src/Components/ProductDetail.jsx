@@ -3,13 +3,15 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import axios from "axios";
 import { useParams } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import {addToCart} from "../Redux/cartSlice";
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
-import { useCart } from "../Components/CartContext";
-
 export default function ProductDetail() {
-  const { addToCart } = useCart();
+  const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+  const cart = useSelector((state) => state.cart.items);
   const { id } = useParams();
   const [product, setProduct] = useState(null);
 
@@ -58,7 +60,7 @@ export default function ProductDetail() {
             </Swiper>
           </div>
           <button
-            onClick={() => addToCart(product)}
+            onClick={() => dispatch(addToCart(product))}
             className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-6 py-3 rounded-lg shadow w-full"
           >
             🛒 Add to Cart

@@ -1,11 +1,12 @@
 // src/pages/AdminDashboard.jsx
-import { useAuth } from "../Components/AuthContext";
+import React from "react";
+import { useSelector } from "react-redux";
 import PendingSellers from "../Seller/PendingSellers.jsx";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function AdminDashboard() {
-  const { user } = useAuth();
+  const user = useSelector((state) => state.auth.user);
   const navigate = useNavigate();
 
   useEffect(() => {

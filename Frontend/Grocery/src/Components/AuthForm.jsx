@@ -1,195 +1,172 @@
 import React, { useState } from "react";
-import { signup, login, verifyOTP, forgotPassword, resetPassword } from "../api/auth"; // make sure to create verifyOTP
-import { useAuth } from "./AuthContext";
+import { signup, login, verifyOTP, forgotPassword, resetPassword } from "../api/auth";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../Redux/authSlice";
 import { Success, Error } from "../Utils/toastUtils.js";
 import { useNavigate } from "react-router-dom";
 
-
 const AuthForm = () => {
- 
-  const [forgotOTPStage, setForgotOTPStage] = useState(false); // track OTP step for forgot
-const [newPassword, setNewPassword] = useState(""); // new password in forgot flow
-
-
-  const { loginUser } = useAuth();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user); // Redux state
+
   const [mode, setMode] = useState("login");
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    otp: "",
-  });
+  const [formData, setFormData] = useState({ name: "", email: "", password: "", otp: "" });
+  const [awaitingOTP, setAwaitingOTP] = useState(false);
+  const [forgotOTPStage, setForgotOTPStage] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const [awaitingOTP, setAwaitingOTP] = useState(false); // New state for OTP step
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  if (loading) return;
-  setLoading(true);
+    e.preventDefault();
+    if (loading) return;
+    setLoading(true);
 
-  try {
-    if (awaitingOTP) {
-      // OTP for signup
-      const res = await verifyOTP({
-  email: formData.email,
-  otp: formData.otp,
-});
-Success(res.data.message);
-
-// Auto-login after successful verification
-const loginRes = await login({
-  email: formData.email,
-  password: formData.password,
-});
-loginUser(loginRes.data.user);
-
-setAwaitingOTP(false);
-navigate("/");
-
-    } else if (mode === "signup") {
-      const res = await signup(formData);
-      setMessage(res.data.message);
-      Success("OTP sent to your email.");
-      setAwaitingOTP(true);
-    } else if (mode === "login") {
-      const res = await login(formData);
-      loginUser(res.data.user);
-      
-      Success(`Welcome back, ${res.data.user.name}!`);
-      if (res.data.user.is_admin) {
-  navigate("/admin-dashboard");
-} else if (res.data.user.role === "seller") {
-  navigate("/seller-dashboard");
-} else {
-  navigate("/");
-}
-
-    } else if (mode === "forgot") {
-      if (!forgotOTPStage) {
-        // Send OTP to email
-        const res = await forgotPassword(formData.email);
+    try {
+      if (awaitingOTP) {
+        const res = await verifyOTP({ email: formData.email, otp: formData.otp });
         Success(res.data.message);
-        setMessage("OTP sent to your email.");
-        setForgotOTPStage(true);
-      } else {
-        // Reset password
-        const res = await resetPassword({
-          email: formData.email,
-          otp: formData.otp,
-          new_password: newPassword,
-        });
-        Success(res.data.message);
-        setForgotOTPStage(false);
-        setMode("login");
-        setNewPassword("");
-        setFormData((prev) => ({ ...prev, otp: "" }));
-        
+
+        // Auto-login after OTP verification
+        const loginRes = await login({ email: formData.email, password: formData.password });
+        dispatch(loginUser(loginRes.data.user));
+
+        setAwaitingOTP(false);
+        navigate("/");
+      } else if (mode === "signup") {
+        const res = await signup(formData);
+        setMessage(res.data.message);
+        Success("OTP sent to your email.");
+        setAwaitingOTP(true);
+      } else if (mode === "login") {
+        const res = await login(formData);
+        dispatch(loginUser(res.data.user));
+        Success(`Welcome back, ${res.data.user.name}!`);
+
+        if (res.data.user.is_admin) navigate("/admin-dashboard");
+        else if (res.data.user.role === "seller") navigate("/seller-dashboard");
+        else navigate("/");
+      } else if (mode === "forgot") {
+        if (!forgotOTPStage) {
+          const res = await forgotPassword(formData.email);
+          Success(res.data.message);
+          setMessage("OTP sent to your email.");
+          setForgotOTPStage(true);
+        } else {
+          const res = await resetPassword({
+            email: formData.email,
+            otp: formData.otp,
+            new_password: newPassword,
+          });
+          Success(res.data.message);
+          setForgotOTPStage(false);
+          setMode("login");
+          setNewPassword("");
+          setFormData((prev) => ({ ...prev, otp: "" }));
+        }
       }
+    } catch (err) {
+      const errorMsg = err.response?.data?.error || "Something went wrong.";
+      setMessage(errorMsg);
+      Error(errorMsg);
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setMessage(err.response?.data?.error || "Something went wrong.");
-    Error(err.response?.data?.error || "Something went wrong.");
-  console.error(err);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
+  const renderFormFields = () => {
+    if (awaitingOTP) {
+      return (
+        <input
+          type="text"
+          name="otp"
+          placeholder="Enter OTP"
+          value={formData.otp}
+          onChange={handleChange}
+          className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+          required
+        />
+      );
+    }
 
-const renderFormFields = () => {
-  if (awaitingOTP) {
-    return (
-      <input
-        type="text"
-        name="otp"
-        placeholder="Enter OTP"
-        value={formData.otp}
-        onChange={handleChange}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        required
-      />
-    );
-  }
+    if (mode === "forgot") {
+      return (
+        <>
+          <input
+            type="email"
+            name="email"
+            placeholder="Enter your email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+          />
+          {forgotOTPStage && (
+            <>
+              <input
+                type="text"
+                name="otp"
+                placeholder="Enter OTP"
+                value={formData.otp}
+                onChange={handleChange}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+              <input
+                type="password"
+                name="newPassword"
+                placeholder="New password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+                required
+              />
+            </>
+          )}
+        </>
+      );
+    }
 
-  if (mode === "forgot") {
     return (
       <>
+        {mode === "signup" && (
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+            required
+          />
+        )}
         <input
           type="email"
           name="email"
-          placeholder="Enter your email"
+          placeholder="Email"
           value={formData.email}
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           required
         />
-        {forgotOTPStage && (
-          <>
-            <input
-              type="text"
-              name="otp"
-              placeholder="Enter OTP"
-              value={formData.otp}
-              onChange={handleChange}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-            <input
-              type="password"
-              name="newPassword"
-              placeholder="New password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-              required
-            />
-          </>
-        )}
-      </>
-    );
-  }
-
-  return (
-    <>
-      {mode === "signup" && (
         <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
+          type="password"
+          name="password"
+          placeholder="Password"
+          value={formData.password}
           onChange={handleChange}
           className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
           required
         />
-      )}
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        required
-      />
-      <input
-        type="password"
-        name="password"
-        placeholder="Password"
-        value={formData.password}
-        onChange={handleChange}
-        className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
-        required
-      />
-    </>
-  );
-};
+      </>
+    );
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 to-blue-100">
