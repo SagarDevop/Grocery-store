@@ -36,7 +36,7 @@ products = db["products"]
 admin_user = {
     "name": os.getenv("ADMIN_NAME"),
     "email": os.getenv("ADMIN_EMAIL"),
-    "password": generate_password_hash(os.getenv("ADMIN_PASSWORD")),
+    "password": os.getenv("ADMIN_PASSWORD"),
     "is_verified": True,
     "is_admin": True,
 }
