@@ -5,17 +5,15 @@ import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../Redux/cartSlice";
-import { fetchCart, syncCart } from "../Redux/cartThunks";
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 
 export default function ProductDetail() {
   const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
-  const cart = useSelector((state) => state.cart.items);
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+
 
 
   useEffect(() => {
@@ -39,11 +37,6 @@ export default function ProductDetail() {
 
   const handleAddToCart = () => {
     dispatch(addToCart(product)); // Update Redux cart
-
-    const updatedCart = [...cart, product];
-
-    // Sync updated cart to backend
-    dispatch(syncCart(user.email, updatedCart));
   };
 
   if (!product)
@@ -106,7 +99,7 @@ export default function ProductDetail() {
             <div className="flex items-center space-x-2">
               <span className="text-gray-500 text-xs">Qty:</span>
               <span className="text-gray-800 font-medium">
-                {product.quantity} {product.unit}
+                {product.amount} {product.unit}
               </span>
             </div>
 
