@@ -39,7 +39,7 @@ products = db["products"]
 admin_user = {
     "name": name,
     "email": email,
-    "password": password,
+    "password": generate_password_hash(password),
     "is_verified": True,
     "is_admin": True,
 }
