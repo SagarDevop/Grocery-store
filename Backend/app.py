@@ -25,6 +25,7 @@ OTP_EXPIRY_MINUTES = 1  # OTP valid for 1 minutes
 CORS(app)
 
 MONGO_URI = os.getenv("MONGO_URI")
+
 client = MongoClient(MONGO_URI)
 db = client["groceryDB"]
 pending_users = db["pending_users"]
@@ -33,11 +34,11 @@ pending_sellers = db["pending_sellers"]
 users_collection = db["users"]
 products = db["products"]
 admin_user = {
-    "name": "Admin",
-    "email": "admin@grocery.com",
-    "password": generate_password_hash("sagar123"), 
+    "name": os.getenv("ADMIN_NAME"),
+    "email": os.getenv("ADMIN_EMAIL"),
+    "password": generate_password_hash(os.getenv("ADMIN_PASSWORD")),
     "is_verified": True,
-    "is_admin": True
+    "is_admin": True,
 }
 
 if not users_collection.find_one({"email": admin_user["email"]}):
