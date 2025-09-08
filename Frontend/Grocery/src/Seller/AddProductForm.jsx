@@ -8,7 +8,8 @@ const AddProductForm = () => {
   const categories = [
     "Vegetables",
     "Fresh Fruits",
-    "Cold Drinks",
+    "Personal Care",
+    "Daily Essentials",
     "Instant Food",
     "Dairy Products",
     "Bakery & Breads",
@@ -40,7 +41,7 @@ const AddProductForm = () => {
       name: formData.name,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
-      amount: parseFloat(formData.quantity),
+      amount: parseFloat(formData.amount),
       unit: formData.unit,
       category: formData.category,
       description: formData.description,

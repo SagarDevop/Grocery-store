@@ -7,11 +7,12 @@ import { useNavigate } from "react-router-dom";
 const categories = [
   { name: "Vegetables", image: "/Organic veggies.png", bg: "bg-yellow-100" },
   { name: "Fresh Fruits", image: "/Fresh Fruits.png", bg: "bg-pink-100" },
-  { name: "Cold Drinks", image: "/Cold Drinks.png", bg: "bg-green-100" },
   { name: "Instant Food", image: "/Instant Food.png", bg: "bg-blue-100" },
   { name: "Dairy Products", image: "/Dairy Products.png", bg: "bg-orange-100" },
   { name: "Bakery & Breads", image: "/Bakery & Breads.png", bg: "bg-sky-100" },
   { name: "Grains & Cereals", image: "/Grains & Cereals.png", bg: "bg-purple-100" },
+  { name: "Daily Essentials", image: "/Daily.png", bg: "bg-yellow-100" },
+  { name: "Personal Care", image: "/Personal Care.png", bg: "bg-pink-100" },
 ];
 
 // Animation Variants
@@ -59,11 +60,7 @@ const CategoriesAndBestSellers = () => {
             </p>
           </motion.div>
         ))}
-      </div>
-
-      {/* Best Sellers */}
-      <h2 className="text-2xl font-semibold my-10 text-green-800">Best Sellers</h2>
-      
+      </div>      
     </div>
   );
 };
