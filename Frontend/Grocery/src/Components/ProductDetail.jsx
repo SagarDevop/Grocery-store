@@ -80,7 +80,7 @@ export default function ProductDetail() {
             <p className="text-sm text-red-500 font-medium">
               Save ₹{10} ({Math.floor((10 / (product.price + 10)) * 100)}%)
             </p>
-            <p className="text-xs text-gray-600">Net Weight: 500g</p>
+            <p className="text-xs text-gray-600">{product.quantity} {product.unit}</p>
 
             <div className="flex items-center gap-1 text-yellow-500 text-sm mt-2">
               ★★★★☆ <span className="text-gray-600 ml-1">(234 reviews)</span>
