@@ -4,10 +4,12 @@ import "swiper/css/pagination";
 import axios from "axios";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
-import {addToCart} from "../Redux/cartSlice";
+import { addToCart } from "../Redux/cartSlice";
+import { fetchCart, syncCart } from "../Redux/cartThunks";
 import { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
+
 export default function ProductDetail() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
@@ -15,14 +17,18 @@ export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
 
+
   useEffect(() => {
     if (!id) return;
 
     const fetchProduct = async () => {
       try {
         console.log("🪵 Product ID from useParams:", id);
-        const res = await axios.get(`https://grocery-store-ue2n.onrender.com/products/${id}`);
+        const res = await axios.get(
+          `https://grocery-store-ue2n.onrender.com/products/${id}`
+        );
         setProduct(res.data);
+        console.log("🛍️ Fetched Product Data:", res.data);
       } catch (err) {
         console.error("❌ Error fetching product by ID:", err);
       }
@@ -31,7 +37,21 @@ export default function ProductDetail() {
     fetchProduct();
   }, [id]);
 
-  if (!product) return <p className="text-center py-20 text-gray-500">Loading or Product Not Found...</p>;
+  const handleAddToCart = () => {
+    dispatch(addToCart(product)); // Update Redux cart
+
+    const updatedCart = [...cart, product];
+
+    // Sync updated cart to backend
+    dispatch(syncCart(user.email, updatedCart));
+  };
+
+  if (!product)
+    return (
+      <p className="text-center py-20 text-gray-500">
+        Loading or Product Not Found...
+      </p>
+    );
 
   return (
     <div className="p-6 max-w-6xl mx-auto bg-white shadow-xl rounded-xl mt-6">
@@ -59,8 +79,9 @@ export default function ProductDetail() {
               ))}
             </Swiper>
           </div>
+
           <button
-            onClick={() => dispatch(addToCart(product))}
+            onClick={handleAddToCart}
             className="bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold px-6 py-3 rounded-lg shadow w-full"
           >
             🛒 Add to Cart
@@ -76,11 +97,18 @@ export default function ProductDetail() {
 
           <div className="space-y-1 border p-4 rounded-lg bg-gray-50">
             <p className="text-2xl font-bold text-green-700">₹{product.price}</p>
-            <p className="text-sm text-gray-500 line-through">₹{product.price + 10}</p>
+            <p className="text-sm text-gray-500 line-through">
+              ₹{product.price + 10}
+            </p>
             <p className="text-sm text-red-500 font-medium">
               Save ₹{10} ({Math.floor((10 / (product.price + 10)) * 100)}%)
             </p>
-            <p className="text-xs text-gray-600">{product.quantity} {product.unit}</p>
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-500 text-xs">Qty:</span>
+              <span className="text-gray-800 font-medium">
+                {product.quantity} {product.unit}
+              </span>
+            </div>
 
             <div className="flex items-center gap-1 text-yellow-500 text-sm mt-2">
               ★★★★☆ <span className="text-gray-600 ml-1">(234 reviews)</span>
@@ -108,10 +136,9 @@ export default function ProductDetail() {
       <div className="mt-10 pt-6 border-t">
         <h2 className="text-lg font-semibold mb-2">Product Description</h2>
         <p className="text-gray-700 text-sm leading-relaxed">
-          {product.fullDescription || "No description available."}
+          {product.description || "No description available."}
         </p>
       </div>
     </div>
   );
 }
- 

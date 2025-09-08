@@ -50,9 +50,9 @@ export default function Cart() {
       ) : (
         <>
           <div className="flex flex-col gap-6">
-            {cart.map((item) => (
+            {cart.map((item, index) => (
               <div
-                key={item._id}
+                key={`${item._id}-${index}`}
                 className="flex items-center justify-between bg-white rounded-lg shadow-md p-4"
               >
                 <div className="flex items-center gap-4">

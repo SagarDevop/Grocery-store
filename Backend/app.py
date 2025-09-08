@@ -392,6 +392,7 @@ def update_user_cart():
     result = users_collection.update_one(
         {"email": email},
         {"$set": {"cart": cart}}
+        
     )
 
     if result.modified_count > 0:
@@ -466,7 +467,7 @@ def reject_seller(seller_id):
 def add_product():
     data = request.json
 
-    required_fields = ['seller_id', 'name', 'price', 'stock','quantity','unit', 'category', 'images']
+    required_fields = ['seller_id', 'name', 'price', 'stock','amount','unit', 'category', 'images']
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing fields"}), 400
 
