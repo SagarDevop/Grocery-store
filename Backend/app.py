@@ -466,7 +466,7 @@ def reject_seller(seller_id):
 def add_product():
     data = request.json
 
-    required_fields = ['seller_id', 'name', 'price', 'stock', 'category', 'images']
+    required_fields = ['seller_id', 'name', 'price', 'stock','quantity','unit', 'category', 'images']
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing fields"}), 400
 
