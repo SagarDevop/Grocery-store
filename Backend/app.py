@@ -442,7 +442,7 @@ A new seller has submitted a registration request at Grocery Store 🛒:
 
 Please review and approve this seller via the admin panel.
 
-- Grocery Store Team
+- Green Cart Team
         """.strip())
 
         with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
