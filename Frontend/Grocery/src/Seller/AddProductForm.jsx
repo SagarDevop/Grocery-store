@@ -19,7 +19,7 @@ const AddProductForm = () => {
     name: "",
     price: "",
     stock: "",
-    quantity: "",
+    amount: "",
     unit: "",
     category: "",
     description: "",
@@ -40,6 +40,8 @@ const AddProductForm = () => {
       name: formData.name,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
+      amount: parseFloat(formData.quantity),
+      unit: formData.unit,
       category: formData.category,
       description: formData.description,
       images: [formData.image1, formData.image2].filter(Boolean), // only non-empty URLs
@@ -55,7 +57,7 @@ const AddProductForm = () => {
         name: "",
         price: "",
         stock: "",
-        quantity: "",
+        amount: "",
         unit: "",
         category: "",
         description: "",
@@ -102,21 +104,23 @@ const AddProductForm = () => {
         />
         <input
           type="number"
-          name="quantity"
-          placeholder="Quantity"
-          value={formData.quantity}
+          name="amount"
+          placeholder="Amount"
+          value={formData.amount}
           onChange={handleChange}
           required
           className="border p-2 rounded"
         />
         <select
           name="unit"
-          placeholder="Unit"
           value={formData.unit}
           onChange={handleChange}
           required
           className="border ml-2 p-2 rounded text-gray-400"
         >
+          <option value="" disabled>
+            Select Unit
+          </option>
           <option value="g">Gram (g)</option>
           <option value="kg">Kilogram (kg)</option>
           <option value="packet">Packet</option>
