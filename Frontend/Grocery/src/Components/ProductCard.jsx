@@ -3,7 +3,6 @@ import { ShoppingCart } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addToCart } from "../Redux/cartSlice";
-import { syncCart } from "../Redux/cartThunks";
 import { useSelector } from "react-redux";
 import { Error, Success } from "../Utils/toastUtils";
 
@@ -31,7 +30,8 @@ const ProductCard = ({ product }) => {
     }
 
     dispatch(addToCart(product));
-    dispatch(syncCart(user.email, [...cart, { ...product, quantity: 1 }]));
+
+    
     Success("Added to cart");
   };
 

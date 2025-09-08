@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Trash2, Plus, Minus } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { Error } from "../Utils/toastUtils";
-import { fetchCart, syncCart } from "../Redux/cartThunks";
 import { removeFromCart, increaseQty, decreaseQty } from "../Redux/cartSlice";
 
 export default function Cart() {
@@ -11,34 +10,21 @@ export default function Cart() {
   const user = useSelector((state) => state.auth.user);
 
   // Fetch cart on mount if user is logged in
-  useEffect(() => {
-    if (user) {
-      dispatch(fetchCart(user.email));
-    }
-  }, [user, dispatch]);
 
   const total = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   const handleIncreaseQty = (_id) => {
     dispatch(increaseQty(_id));
-    dispatch(syncCart(user.email, cart.map(item => item._id === _id ? { ...item, quantity: item.quantity + 1 } : item)));
+    
   };
 
   const handleDecreaseQty = (_id) => {
-    const updatedCart = cart
-      .map((item) =>
-        item._id === _id ? { ...item, quantity: item.quantity - 1 } : item
-      )
-      .filter((item) => item.quantity > 0);
-
     dispatch(decreaseQty(_id));
-    dispatch(syncCart(user.email, updatedCart));
+    
   };
 
   const handleRemoveFromCart = (_id) => {
-    const updatedCart = cart.filter((item) => item._id !== _id);
     dispatch(removeFromCart(_id));
-    dispatch(syncCart(user.email, updatedCart));
   };
 
   return (

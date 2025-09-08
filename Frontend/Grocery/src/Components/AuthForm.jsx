@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { signup, login, verifyOTP, forgotPassword, resetPassword } from "../api/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
@@ -18,6 +18,7 @@ const AuthForm = () => {
   const [message, setMessage] = useState(null);
   const [loading, setLoading] = useState(false);
 
+ 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };

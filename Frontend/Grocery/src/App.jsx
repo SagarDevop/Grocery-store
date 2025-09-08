@@ -13,11 +13,26 @@ import AuthForm from './Components/AuthForm'
 import AdminDashboard from './Components/AdminDashboard'
 import SellerDashboard from './Seller/SellerDashboard'
 import AddProductForm from './Seller/AddProductForm'
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchCart } from "./Redux/cartThunks";
+import { clearCart } from "./Redux/cartSlice";
+
 
 
 import { Routes, Route } from 'react-router-dom';
 
 function App() {
+   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    if (user) {
+      dispatch(fetchCart(user.email));  // Load cart from backend on login or refresh
+    } else {
+      dispatch(clearCart());  // Clear cart when logged out
+    }
+  }, [user, dispatch]);
  
 
   return (
