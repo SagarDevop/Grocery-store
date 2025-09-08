@@ -22,14 +22,26 @@ export default function SellerRegistration() {
 
   
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
 
   try {
+    // Step 1: Register seller in DB
     await registerSeller(formData);
+
+    // Step 2: Notify admin
+    await fetch("https://grocery-store-ue2n.onrender.com/notify-new-seller", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData),
+    });
+
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
     toast.success("Registration submitted! We'll contact you soon.");
+
     setFormData({
       name: "",
       phone: "",
@@ -47,6 +59,7 @@ export default function SellerRegistration() {
     setLoading(false);
   }
 };
+
 
   return (
     <section className="bg-white py-16 px-4 md:px-12">

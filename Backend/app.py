@@ -418,6 +418,58 @@ def get_pending_sellers():
     sellers = list(pending_sellers.find())
     return dumps(sellers), 200
 
+#new seller notification to admin
+def send_admin_notification_new_seller(data):
+    try:
+        sender_email = "Sagar.singh44818@gmail.com"
+        sender_password = "wjyv znpq ondf qlky"
+        admin_email = "sagar.singh44818@gmail.com"  # Change to your actual admin email
+
+        msg = EmailMessage()
+        msg["Subject"] = "📢 New Seller Registration Request"
+        msg["From"] = "Grocery Store <Sagar.singh44818@gmail.com>"
+        msg["To"] = admin_email
+
+        msg.set_content(f"""
+A new seller has submitted a registration request at Grocery Store 🛒:
+
+🔹 Name: {data.get('name')}
+🔹 Phone: {data.get('phone')}
+🔹 Email: {data.get('email')}
+🔹 City: {data.get('city')}
+🔹 Store Name: {data.get('store')}
+🔹 Products: {data.get('products')}
+
+Please review and approve this seller via the admin panel.
+
+- Grocery Store Team
+        """.strip())
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+            smtp.login(sender_email, sender_password)
+            smtp.send_message(msg)
+
+        print("Admin notified successfully")
+        return True
+    except Exception as e:
+        print("Admin notification email error:", e)
+        return False
+
+
+@app.route('/notify-new-seller', methods=['POST'])
+def notify_admin():
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Invalid data"}), 400
+
+    success = send_admin_notification_new_seller(data)
+    if success:
+        return jsonify({"message": "Admin notified successfully"}), 200
+    else:
+        return jsonify({"error": "Failed to send email to admin"}), 500
+
+
 @app.route('/approve-seller/<string:seller_id>', methods=['POST'])
 def approve_seller(seller_id):
     seller = pending_sellers.find_one({"_id": ObjectId(seller_id)})
