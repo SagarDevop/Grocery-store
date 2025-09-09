@@ -12,6 +12,10 @@ import ProductDetail from './Components/ProductDetail'
 import AuthForm from './Components/AuthForm'
 import AdminDashboard from './Components/AdminDashboard'
 import SellerDashboard from './Seller/SellerDashboard'
+import SellerProduct from './Seller/SellerProduct'
+import SellerOrder from './Seller/SellerOrder'
+import SellerEarning from './Seller/SellerEarning'
+import SellerProfile from './Seller/SellerProfile'
 import AddProductForm from './Seller/AddProductForm'
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -49,7 +53,12 @@ function App() {
         <Route path='/cart' element={<Cart/>} />
         <Route path='/seller' element={<BecomeSeller/>} />
         <Route path="/seller-dashboard" element={<SellerDashboard />}>
-          <Route path="add-product" element={<AddProductForm />} />
+         <Route path="sellerproductlist" element={<SellerProduct />} />
+        <Route path="add-product" element={<AddProductForm />} />
+        <Route path="orders" element={<SellerOrder />} />
+        <Route path="profile" element={<SellerProfile />} />
+        <Route path="earnings" element={<SellerEarning />} />
+
         </Route>
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/auth" element={<AuthForm />} />
