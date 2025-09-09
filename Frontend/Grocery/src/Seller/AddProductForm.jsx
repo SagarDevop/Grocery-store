@@ -1,10 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { Success, Error } from "../Utils/toastUtils.js";
 
 const AddProductForm = () => {
-  const user = useSelector((state) => state.auth.user);
+  const user = useSelector((state) => state.auth.user); // Logged-in user info
+  const [seller, setSeller] = useState(null);
+  const [loadingSeller, setLoadingSeller] = useState(true);
+
   const categories = [
     "Vegetables",
     "Fresh Fruits",
@@ -15,7 +18,7 @@ const AddProductForm = () => {
     "Bakery & Breads",
     "Grains & Cereals",
   ];
-  console.log("User from AuthContext:", user);
+
   const [formData, setFormData] = useState({
     name: "",
     price: "",
@@ -28,6 +31,26 @@ const AddProductForm = () => {
     image2: "",
   });
 
+  // Fetch seller info from backend
+  useEffect(() => {
+    if (!user?.email) return;
+
+    const fetchSeller = async () => {
+      try {
+        const res = await axios.get(
+          `https://grocery-store-ue2n.onrender.com/api/current-seller/${user.email}`
+        );
+        setSeller(res.data);
+        setLoadingSeller(false);
+      } catch (err) {
+        console.error("Error fetching seller info:", err);
+        setLoadingSeller(false);
+      }
+    };
+
+    fetchSeller();
+  }, [user]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -35,9 +58,10 @@ const AddProductForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!seller) return Error("Seller info not loaded yet!");
 
     const payload = {
-      seller_id: user._id,
+      seller_id: seller._id, // ✅ use seller id from API
       name: formData.name,
       price: parseFloat(formData.price),
       stock: parseInt(formData.stock),
@@ -45,15 +69,15 @@ const AddProductForm = () => {
       unit: formData.unit,
       category: formData.category,
       description: formData.description,
-      images: [formData.image1, formData.image2].filter(Boolean), // only non-empty URLs
+      images: [formData.image1, formData.image2].filter(Boolean),
     };
 
     try {
-      const res = await axios.post(
+      await axios.post(
         "https://grocery-store-ue2n.onrender.com/add-product",
         payload
       );
-      Success("Product added successfully!"); // or just alert("...")
+      Success("Product added successfully!");
       setFormData({
         name: "",
         price: "",
@@ -67,10 +91,13 @@ const AddProductForm = () => {
       });
     } catch (err) {
       Error("Failed to add product");
+      console.error("Submitting payload:", payload);
       console.error(err);
-      console.log("Submitting payload:", payload);
     }
   };
+
+  if (loadingSeller)
+    return <p className="text-center py-10 text-gray-500">Loading seller info...</p>;
 
   return (
     <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
@@ -129,7 +156,6 @@ const AddProductForm = () => {
           <option value="liter">Liter (L)</option>
           <option value="per item">Per item</option>
         </select>
-
         <input
           type="text"
           name="category"
@@ -140,7 +166,6 @@ const AddProductForm = () => {
           required
           className="w-full border p-2 rounded"
         />
-
         <datalist id="category-list">
           {categories.map((cat) => (
             <option key={cat} value={cat} />

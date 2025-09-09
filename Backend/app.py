@@ -502,6 +502,27 @@ def approve_seller(seller_id):
 
     return jsonify({"message": "Seller approved"}), 200
 
+@app.route("/api/current-seller/<string:email>", methods=["GET"])
+def get_current_seller(email):
+    """
+    Fetch seller info based on their email (assuming the seller is logged in)
+    """
+    seller = sellers_collection.find_one({"email": email})
+    if not seller:
+        return jsonify({"error": "Seller not found"}), 404
+
+    # Convert ObjectId to string
+    seller["_id"] = str(seller["_id"])
+
+    return jsonify({
+        "_id": seller["_id"],
+        "name": seller.get("name"),
+        "phone": seller.get("phone"),
+        "email": seller.get("email"),
+        "store": seller.get("store")
+    }), 200
+
+
 
 @app.route('/reject-seller/<string:seller_id>', methods=['DELETE'])
 def reject_seller(seller_id):
