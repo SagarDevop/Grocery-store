@@ -548,11 +548,29 @@ def get_product_by_id(product_id):
         product = products.find_one({"_id": ObjectId(product_id)})
         if not product:
             return jsonify({"error": "Product not found"}), 404
+
         product["_id"] = str(product["_id"])
         product["seller_id"] = str(product["seller_id"])
+
+        # Fetch seller details
+        seller = sellers_collection.find_one({"_id": ObjectId(product["seller_id"])})
+        if seller:
+            seller_info = {
+                "name": seller.get("name"),
+                "phone": seller.get("phone"),
+                "email": seller.get("email"),
+                "store": seller.get("store"),
+            }
+            product["seller"] = seller_info
+        else:
+            product["seller"] = None
+
         return jsonify(product), 200
+
     except Exception as e:
+        print(f"Error fetching product by ID: {e}")
         return jsonify({"error": "Invalid product ID"}), 400
+
     
 @app.route('/products/category/<string:category_name>', methods=['GET'])
 def get_products_by_category(category_name):

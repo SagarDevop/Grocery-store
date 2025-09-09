@@ -14,8 +14,6 @@ export default function ProductDetail() {
   const { id } = useParams();
   const [product, setProduct] = useState(null);
 
-
-
   useEffect(() => {
     if (!id) return;
 
@@ -36,7 +34,7 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = () => {
-    dispatch(addToCart(product)); // Update Redux cart
+    dispatch(addToCart(product));
   };
 
   if (!product)
@@ -81,7 +79,7 @@ export default function ProductDetail() {
           </button>
         </div>
 
-        {/* Right: Info */}
+        {/* Right: Product Info */}
         <div className="flex flex-col justify-start gap-4 md:w-1/2">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
@@ -94,8 +92,9 @@ export default function ProductDetail() {
               ₹{product.price + 10}
             </p>
             <p className="text-sm text-red-500 font-medium">
-              Save ₹{10} ({Math.floor((10 / (product.price + 10)) * 100)}%)
+              Save ₹10 ({Math.floor((10 / (product.price + 10)) * 100)}%)
             </p>
+
             <div className="flex items-center space-x-2">
               <span className="text-gray-500 text-xs">Qty:</span>
               <span className="text-gray-800 font-medium">
@@ -127,11 +126,24 @@ export default function ProductDetail() {
 
       {/* Description */}
       <div className="mt-10 pt-6 border-t">
-        <h2 className="text-lg font-semibold mb-2">Product Description</h2>
+        <h2 className="text-lg font-semibold mb-2">📝 Product Description</h2>
         <p className="text-gray-700 text-sm leading-relaxed">
           {product.description || "No description available."}
         </p>
       </div>
+
+      {/* Seller Info */}
+      {product.seller && (
+        <div className="mt-10 pt-6 border-t">
+          <h2 className="text-lg font-semibold mb-2">🏬 Seller Information</h2>
+          <div className="space-y-2 text-gray-700 text-sm">
+            <p><strong>Name:</strong> {product.seller.name}</p>
+            <p><strong>Store Name:</strong> {product.seller.store}</p>
+            <p><strong>Email:</strong> {product.seller.email}</p>
+            <p><strong>Phone:</strong> {product.seller.phone}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
