@@ -522,6 +522,15 @@ def get_current_seller(email):
         "store": seller.get("store")
     }), 200
 
+@app.route("/api/profile/<string:email>", methods=["GET"])
+def get_user_profile(email):
+    user = users_collection.find_one({"email": email})
+    if user:
+        user["_id"] = str(user["_id"])
+        return jsonify(user), 200
+    else:
+        return jsonify({"error": "User not found"}), 404
+
 
 
 @app.route('/reject-seller/<string:seller_id>', methods=['DELETE'])
