@@ -3,7 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logoutUser } from "../Redux/authSlice";
 import axios from "axios";
-import { refreshUserProfile } from "../Redux/authThunk"
+
 
 const SellerDashboard = () => {
   const dispatch = useDispatch();
@@ -14,11 +14,7 @@ const SellerDashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  useEffect(() => {
-  if (user?.email) {
-    dispatch(refreshUserProfile(user.email)); // Refresh user profile from backend
-  }
-}, []);
+
   
 
   const [dashboardData, setDashboardData] = useState({
