@@ -519,18 +519,27 @@ def reject_seller(seller_id):
 # Seller side api 
 
 
+from bson import ObjectId
+
 @app.route('/add-product', methods=['POST'])
 def add_product():
     data = request.json
 
-    required_fields = ['seller_id', 'name', 'price', 'stock','amount','unit', 'category', 'images']
+    required_fields = ['seller_id', 'name', 'price', 'stock', 'amount', 'unit', 'category', 'images']
     if not all(field in data for field in required_fields):
         return jsonify({"error": "Missing fields"}), 400
+
+    try:
+        # Convert seller_id to ObjectId
+        data['seller_id'] = ObjectId(data['seller_id'])
+    except Exception as e:
+        return jsonify({"error": "Invalid seller_id format"}), 400
 
     data['created_at'] = datetime.utcnow()
     result = products.insert_one(data)
 
     return jsonify({"message": "Product added", "product_id": str(result.inserted_id)}), 201
+
 
 
 @app.route('/products', methods=['GET'])
