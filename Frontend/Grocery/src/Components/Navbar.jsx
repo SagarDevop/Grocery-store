@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { logoutUser as logoutAction } from "../Redux/authSlice"; // Redux logout
+import { refreshUserProfile } from "../Redux/authThunk"
 import { Dialog } from "@headlessui/react";
 import { Success, Error } from "../Utils/toastUtils.js";
 import {
@@ -22,6 +23,7 @@ export default function Navbar() {
   const cart = useSelector((state) => state.cart.items);
   const user = useSelector((state) => state.auth.user); // Redux user
 
+
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -35,6 +37,12 @@ export default function Navbar() {
   ];
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
+
+    useEffect(() => {
+    if (user?.email) {
+      dispatch(refreshUserProfile(user.email)); // Refresh user profile from backend
+    }
+  }, []);
 
   const handleSearch = (e) => {
     if (e.key === "Enter" || e.type === "click") {
