@@ -54,12 +54,12 @@ if not users_collection.find_one({"email": admin_user["email"]}):
 
 def send_otp_email_signup(receiver_email, otp):
     try:
-        sender_email = "Sagar.singh44818@gmail.com"
-        sender_password = "wjyv znpq ondf qlky"
+        sender_email = "warshasingh21@gmail.com"
+        sender_password = "dyba phlr lsll vofw"
 
         msg = EmailMessage()
         msg["Subject"] = "🔐 Verify Your Grocery Store Account - OTP Inside"
-        msg["From"] = "Grocery Store <Sagar.singh44818@gmail.com>"
+        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
         msg["To"] = receiver_email
 
         msg.set_content(f"""
@@ -93,11 +93,11 @@ Grocery Store | Freshness Delivered.
     
 def send_seller_email(receiver_email, status, name):
     try:
-        sender_email = "Sagar.singh44818@gmail.com"
-        sender_password = "wjyv znpq ondf qlky"
+        sender_email = "warshasingh21@gmail.com"
+        sender_password = "dyba phlr lsll vofw"
 
         msg = EmailMessage()
-        msg["From"] = "Grocery Store <Sagar.singh44818@gmail.com>"
+        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
         msg["To"] = receiver_email
 
         if status == "approved":
@@ -181,12 +181,12 @@ def signup():
 
 def send_otp_email_forgot_password(receiver_email, otp):
     try:
-        sender_email = "Sagar.singh44818@gmail.com"
-        sender_password = "wjyv znpq ondf qlky"
+        sender_email = "warshasingh21@gmail.com"
+        sender_password = "dyba phlr lsll vofw"
 
         msg = EmailMessage()
         msg["Subject"] = "🔑 Reset Your Grocery Store Password - OTP Inside"
-        msg["From"] = "Grocery Store <Sagar.singh44818@gmail.com>"
+        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
         msg["To"] = receiver_email
 
         msg.set_content(f"""
@@ -424,13 +424,13 @@ def get_pending_sellers():
 #new seller notification to admin
 def send_admin_notification_new_seller(data):
     try:
-        sender_email = "Sagar.singh44818@gmail.com"
-        sender_password = "wjyv znpq ondf qlky"
-        admin_email = "sagar.singh44818@gmail.com"  # Change to your actual admin email
+        sender_email = "warshasingh21@gmail.com"
+        sender_password = "dyba phlr lsll vofw"
+        admin_email = "Sagar.singh44818@gmail.com"  # Change to your actual admin email
 
         msg = EmailMessage()
         msg["Subject"] = "📢 New Seller Registration Request"
-        msg["From"] = "Grocery Store <Sagar.singh44818@gmail.com>"
+        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
         msg["To"] = admin_email
 
         msg.set_content(f"""
