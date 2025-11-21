@@ -12,6 +12,13 @@ from dotenv import load_dotenv
 import os
 from bson.objectid import ObjectId
 from flask import jsonify
+from email_service import (
+    send_otp_email_signup,
+    send_otp_email_forgot_password,
+    send_seller_email,
+    send_admin_notification_new_seller
+)
+
 
 load_dotenv()
 
@@ -49,90 +56,6 @@ if not users_collection.find_one({"email": admin_user["email"]}):
 
 
 # --- ROUTES ---
-
-
-
-def send_otp_email_signup(receiver_email, otp):
-    try:
-        sender_email = "warshasingh21@gmail.com"
-        sender_password = "dyba phlr lsll vofw"
-
-        msg = EmailMessage()
-        msg["Subject"] = "🔐 Verify Your Grocery Store Account - OTP Inside"
-        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
-        msg["To"] = receiver_email
-
-        msg.set_content(f"""
-Hi there,
-
-Thank you for signing up at **Grocery Store** 🛒!
-
-To complete your registration, please enter the following One-Time Password (OTP) in the app:
-
-🔑 OTP: {otp}
-
-This OTP is valid for {OTP_EXPIRY_MINUTES} minutes.
-
-If you did not initiate this request, you can safely ignore this email.
-
-Warm regards,  
-The Grocery Store Team
-
---------------------------------------
-Grocery Store | Freshness Delivered.
-        """.strip())
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender_email, sender_password)
-            smtp.send_message(msg)
-
-        return True
-    except Exception as e:
-        print("Email sending error:", e)
-        return False
-    
-def send_seller_email(receiver_email, status, name):
-    try:
-        sender_email = "warshasingh21@gmail.com"
-        sender_password = "dyba phlr lsll vofw"
-
-        msg = EmailMessage()
-        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
-        msg["To"] = receiver_email
-
-        if status == "approved":
-            msg["Subject"] = "✅ Your Grocery Seller Registration is Approved!"
-            msg.set_content(f"""
-Hi {name},
-
-Great news! 🎉  
-Your seller registration for **Grocery Store** has been approved.  
-
-You can now get in touch with us to activate your store panel.
-
-Thanks for joining us!  
-- Grocery Store Team
-""")
-        else:
-            msg["Subject"] = "❌ Seller Registration Rejected"
-            msg.set_content(f"""
-Hi {name},
-
-Thank you for your interest in **Grocery Store**.  
-After reviewing your application, we’re sorry to inform you that it has been rejected.
-
-You may contact support for more info.
-
-- Grocery Store Team
-""")
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender_email, sender_password)
-            smtp.send_message(msg)
-
-    except Exception as e:
-        print("Email error:", e)
-
 
 
 @app.route("/signup", methods=["POST"])
@@ -179,44 +102,6 @@ def signup():
 
     return jsonify({"message": "OTP sent to your email. Please verify."}), 201
 
-def send_otp_email_forgot_password(receiver_email, otp):
-    try:
-        sender_email = "warshasingh21@gmail.com"
-        sender_password = "dyba phlr lsll vofw"
-
-        msg = EmailMessage()
-        msg["Subject"] = "🔑 Reset Your Grocery Store Password - OTP Inside"
-        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
-        msg["To"] = receiver_email
-
-        msg.set_content(f"""
-Hi there,
-
-We received a request to reset your password for your **Grocery Store** 🛒 account.
-
-To proceed, please enter the following One-Time Password (OTP) in the app:
-
-🔑 OTP: {otp}
-
-This OTP is valid for {OTP_EXPIRY_MINUTES} minutes.
-
-If you did not request a password reset, please ignore this message. Your account is safe.
-
-Warm regards,  
-The Grocery Store Team
-
---------------------------------------
-Grocery Store | Freshness Delivered.
-        """.strip())
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender_email, sender_password)
-            smtp.send_message(msg)
-
-        return True
-    except Exception as e:
-        print("Email sending error (Forgot Password):", e)
-        return False
 
 
 @app.route("/verify-otp", methods=["POST"])
@@ -422,41 +307,6 @@ def get_pending_sellers():
     return dumps(sellers), 200
 
 #new seller notification to admin
-def send_admin_notification_new_seller(data):
-    try:
-        sender_email = "warshasingh21@gmail.com"
-        sender_password = "dyba phlr lsll vofw"
-        admin_email = "Sagar.singh44818@gmail.com"  # Change to your actual admin email
-
-        msg = EmailMessage()
-        msg["Subject"] = "📢 New Seller Registration Request"
-        msg["From"] = "Grocery Store <warshasingh21@gmail.com>"
-        msg["To"] = admin_email
-
-        msg.set_content(f"""
-A new seller has submitted a registration request at Grocery Store 🛒:
-
-🔹 Name: {data.get('name')}
-🔹 Phone: {data.get('phone')}
-🔹 Email: {data.get('email')}
-🔹 City: {data.get('city')}
-🔹 Store Name: {data.get('store')}
-🔹 Products: {data.get('products')}
-
-Please review and approve this seller via the admin panel.
-
-- Green Cart Team
-        """.strip())
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-            smtp.login(sender_email, sender_password)
-            smtp.send_message(msg)
-
-        print("Admin notified successfully")
-        return True
-    except Exception as e:
-        print("Admin notification email error:", e)
-        return False
 
 
 @app.route('/notify-new-seller', methods=['POST'])
