@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import random, smtplib
 from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from email.message import EmailMessage
 from pymongo import MongoClient
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -86,7 +87,7 @@ def signup():
 
     hashed_password = generate_password_hash(password)
     otp = str(random.randint(100000, 999999))
-    otp_expiry = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    otp_expiry = datetime.now(UTC) + timedelta(minutes=OTP_EXPIRY_MINUTES)
 
     email_sent = send_otp_email_signup(email, otp)
     if not email_sent:
@@ -158,7 +159,7 @@ def forgot_password():
         return jsonify({"error": "User not found"}), 404
 
     otp = str(random.randint(100000, 999999))
-    otp_expiry = datetime.utcnow() + timedelta(minutes=OTP_EXPIRY_MINUTES)
+    otp_expiry = datetime.now(UTC) + timedelta(minutes=OTP_EXPIRY_MINUTES)
 
     # Update user with OTP
     users_collection.update_one(

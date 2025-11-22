@@ -1,5 +1,7 @@
 import os
 import requests
+print("BREVO_API_KEY:", os.getenv("BREVO_API_KEY"))
+print("BREVO_SENDER_EMAIL:", os.getenv("BREVO_SENDER_EMAIL"))
 
 def send_email_brevo(to, subject, html):
     url = "https://api.brevo.com/v3/smtp/email"
