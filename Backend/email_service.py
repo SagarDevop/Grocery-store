@@ -29,12 +29,12 @@ def send_email_brevo(to, subject, html):
         return False
 
 
-def send_otp_email_signup(receiver_email, otp, expiry_time):
+def send_otp_email_signup(receiver_email, otp):
     html = f"""
     <h2>Verify Your Grocery Store Account</h2>
     <p>Your OTP is:</p>
     <h1>{otp}</h1>
-    <p>This OTP is valid for {expiry_time} minutes.</p>
+    <p>This OTP is valid for 1 minutes.</p>
     """
     return send_email_brevo(
         receiver_email,
@@ -43,12 +43,12 @@ def send_otp_email_signup(receiver_email, otp, expiry_time):
     )
 
 
-def send_otp_email_forgot_password(receiver_email, otp, expiry_time):
+def send_otp_email_forgot_password(receiver_email, otp):
     html = f"""
     <h2>Reset Your Grocery Store Password</h2>
     <p>Your OTP is:</p>
     <h1>{otp}</h1>
-    <p>This OTP is valid for {expiry_time} minutes.</p>
+    <p>This OTP is valid for 1 minutes.</p>
     """
     return send_email_brevo(
         receiver_email,
