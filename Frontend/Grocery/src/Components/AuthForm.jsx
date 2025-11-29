@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 const AuthForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user); // Redux state
+  const user = useSelector((state) => state.auth.user); 
 
   const [mode, setMode] = useState("login");
   const [formData, setFormData] = useState({ name: "", email: "", password: "", otp: "" });
@@ -33,7 +33,6 @@ const AuthForm = () => {
         const res = await verifyOTP({ email: formData.email, otp: formData.otp });
         Success(res.data.message);
 
-        // Auto-login after OTP verification
         const loginRes = await login({ email: formData.email, password: formData.password });
         dispatch(loginUser(loginRes.data.user));
 

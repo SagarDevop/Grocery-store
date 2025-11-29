@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from flask_cors import CORS
 import random, smtplib
 from datetime import datetime, timedelta
@@ -26,11 +27,35 @@ load_dotenv()
 
 
 
-# --- CONFIG ---
-app = Flask(__name__)
 
-OTP_EXPIRY_MINUTES = 1  # OTP valid for 1 minutes
-CORS(app)
+app = Flask(__name__)
+app.secret_key = os.getenv("APP_SECRET")
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+class User(UserMixin):
+    def __init__(self, email, id):
+        self.id = id
+        self.email = email
+
+@login_manager.user_loader
+def load_user(user_id):
+    user_data = users_collection.find_one({"_id": ObjectId(user_id)})
+    if user_data:
+        return User(user_data["email"], str(user_data["_id"]))
+    return None
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    return jsonify({"error": "Login required"}), 401
+
+
+
+OTP_EXPIRY_MINUTES = 1  
+CORS(app,
+     supports_credentials=True,
+     origins=["http://localhost:5173","https://grocery-store-ue2n.onrender.com"])
 
 MONGO_URI = os.getenv("MONGO_URI")
 name = os.getenv("ADMIN_NAME")
@@ -56,7 +81,7 @@ if not users_collection.find_one({"email": admin_user["email"]}):
     users_collection.insert_one(admin_user)
 
 
-# --- ROUTES ---
+
 
 
 @app.route("/signup", methods=["POST"])
@@ -74,11 +99,11 @@ def signup():
     except EmailNotValidError as e:
         return jsonify({"error": str(e)}), 400
 
-    # Check and remove expired pending user (if any)
+
     existing_pending = pending_users.find_one({"email": email})
     if existing_pending:
         if datetime.utcnow() > existing_pending["otp_expiry"]:
-            pending_users.delete_one({"email": email})  # clean up expired
+            pending_users.delete_one({"email": email})  
         else:
             return jsonify({"error": "A verification is already in progress"}), 409
 
@@ -117,13 +142,13 @@ def verify_otp():
         return jsonify({"error": "No pending signup found"}), 404
 
     if datetime.utcnow() > user["otp_expiry"]:
-        pending_users.delete_one({"email": email})  # Clean up expired
+        pending_users.delete_one({"email": email}) 
         return jsonify({"error": "OTP expired. Please sign up again."}), 400
 
     if user["otp"] != otp_input:
         return jsonify({"error": "Invalid OTP"}), 400
 
-    # Insert verified user
+  
     insert_result = users_collection.insert_one({
         "name": user["name"],
         "email": user["email"],
@@ -132,7 +157,7 @@ def verify_otp():
         "cart": [] 
     })
 
-    # Delete from pending
+ 
     pending_users.delete_one({"email": email})
 
     return jsonify({
@@ -161,7 +186,6 @@ def forgot_password():
     otp = str(random.randint(100000, 999999))
     otp_expiry = datetime.now(UTC) + timedelta(minutes=OTP_EXPIRY_MINUTES)
 
-    # Update user with OTP
     users_collection.update_one(
         {"email": email},
         {"$set": {"reset_otp": otp, "reset_otp_expiry": otp_expiry}}
@@ -212,18 +236,19 @@ def login():
     if not email or not password:
         return jsonify({"error": "Email and password are required"}), 400
 
-    # Always check users_collection first
+    
     user = users_collection.find_one({"email": email})
 
-    # If user exists, check password
+
     if user:
         if not check_password_hash(user["password"], password):
             return jsonify({"error": "Invalid credentials"}), 401
+        login_user(User(user["email"], str(user["_id"])))
 
         if not user.get("is_verified", False):
             return jsonify({"error": "Please verify your account first."}), 403
 
-        # Now ALSO check if this user is in sellers_collection
+       
         seller = sellers_collection.find_one({"email": email})
         role = "seller" if seller else "user"
 
@@ -239,7 +264,7 @@ def login():
 
         }), 200
 
-    # If not found in users, maybe it's a seller-only account
+   
     seller = sellers_collection.find_one({"email": email})
     if seller:
         if not check_password_hash(seller["password"], password):
@@ -271,16 +296,13 @@ def get_user_cart(email):
     return jsonify({"cart": user.get("cart", [])})
 
 @app.route("/api/cart/update", methods=["POST"])
+@login_required
 def update_user_cart():
     data = request.json
-    email = data.get("email")
     cart = data.get("cart", [])
 
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
-
     result = users_collection.update_one(
-        {"email": email},
+        {"_id": ObjectId(current_user.id)},
         {"$set": {"cart": cart}}
         
     )
@@ -294,7 +316,7 @@ def update_user_cart():
 def register_seller():
     data = request.get_json()
 
-    # Optional: check if email already exists
+ 
     if pending_sellers.find_one({"email": data.get("email")}):
         return jsonify({"message": "Seller with this email already registered"}), 400
 
@@ -307,7 +329,7 @@ def get_pending_sellers():
     sellers = list(pending_sellers.find())
     return dumps(sellers), 200
 
-#new seller notification to admin
+
 
 
 @app.route('/notify-new-seller', methods=['POST'])
@@ -330,17 +352,17 @@ def approve_seller(seller_id):
     if not seller:
         return jsonify({"message": "Seller not found"}), 404
 
-    # Move to sellers collection
+   
     sellers_collection.insert_one({
         **seller,
         "role": "seller",
         "approved_at": datetime.utcnow()
     })
 
-    # Delete from pending_sellers
+
     pending_sellers.delete_one({"_id": ObjectId(seller_id)})
 
-    # ✅ Update role in users_collection if user exists
+    
     user = users_collection.find_one({"email": seller["email"]})
     if user:
         users_collection.update_one(
@@ -348,7 +370,7 @@ def approve_seller(seller_id):
             {"$set": {"role": "seller"}}
         )
 
-    # Send confirmation email
+ 
     send_seller_email(seller["email"], "approved", seller["name"])
 
     return jsonify({"message": "Seller approved"}), 200
@@ -362,7 +384,7 @@ def get_current_seller(email):
     if not seller:
         return jsonify({"error": "Seller not found"}), 404
 
-    # Convert ObjectId to string
+
     seller["_id"] = str(seller["_id"])
 
     return jsonify({
@@ -392,12 +414,11 @@ def reject_seller(seller_id):
 
     pending_sellers.delete_one({"_id": ObjectId(seller_id)})
 
-    # ✅ Send rejection email
+   
     send_seller_email(seller["email"], "rejected", seller["name"])
 
     return jsonify({"message": "Seller rejected"}), 200
 
-# Seller side api 
 
 
 from bson import ObjectId
@@ -411,7 +432,7 @@ def add_product():
         return jsonify({"error": "Missing fields"}), 400
 
     try:
-        # Convert seller_id to ObjectId
+       
         data['seller_id'] = ObjectId(data['seller_id'])
     except Exception as e:
         return jsonify({"error": "Invalid seller_id format"}), 400
@@ -427,8 +448,8 @@ def add_product():
 def get_all_products():
     all_products = list(products.find())
     for product in all_products:
-        product['_id'] = str(product['_id'])  # Convert ObjectId to string
-        product['seller_id'] = str(product['seller_id'])  # Optional, if stored
+        product['_id'] = str(product['_id'])  
+        product['seller_id'] = str(product['seller_id'])  
     return jsonify(all_products), 200
 
 
@@ -439,10 +460,10 @@ def get_product_by_id(product_id):
         if not product:
             return jsonify({"error": "Product not found"}), 404
 
-        # Keep ObjectId type for lookup
+ 
         seller_id = product["seller_id"]
 
-        # Fetch seller details
+  
         seller = sellers_collection.find_one({"_id": seller_id})
 
         if seller:
@@ -456,7 +477,7 @@ def get_product_by_id(product_id):
         else:
             product["seller"] = None
 
-        # Convert ObjectIds to strings for frontend
+   
         product["_id"] = str(product["_id"])
         product["seller_id"] = str(product["seller_id"])
 
@@ -492,13 +513,13 @@ def seller_dashboard_summary():
     if not seller_id:
         return jsonify({"error": "Missing sellerId"}), 400
 
-    # Optional: Only if your DB uses ObjectId
+
     try:
         seller_object_id = ObjectId(seller_id)
     except:
         return jsonify({"error": "Invalid seller ID"}), 400
 
-    # Use seller_object_id only if it's needed
+ 
     total_products = products.count_documents({"seller_id": seller_id})
     orders_count = random.randint(20, 40)
     earnings = total_products * 400

@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import FilterBar from "./FilterBar";
 import SortBar from "./SortBar";
 import ProductCard from "./ProductCard.jsx";
+import { Allproduct } from "../api/auth.js";
 
 const ProductList = () => {
   const location = useLocation();
@@ -14,7 +15,7 @@ const ProductList = () => {
   const [sortBy, setSortBy] = useState("default");
 
   useEffect(() => {
-    axios.get("https://grocery-store-ue2n.onrender.com/products")
+    Allproduct()
       .then((res) => setAllProducts(res.data))
       .catch((err) => console.error("Error fetching products", err));
   }, []);

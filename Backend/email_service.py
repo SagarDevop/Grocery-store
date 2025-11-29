@@ -1,7 +1,7 @@
 import os
 import requests
-print("BREVO_API_KEY:", os.getenv("BREVO_API_KEY"))
-print("BREVO_SENDER_EMAIL:", os.getenv("BREVO_SENDER_EMAIL"))
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL")
 
 def send_email_brevo(to, subject, html):
     url = "https://api.brevo.com/v3/smtp/email"
@@ -9,7 +9,7 @@ def send_email_brevo(to, subject, html):
     payload = {
         "sender": {
             "name": "Grocery Store",
-            "email": os.getenv("BREVO_SENDER_EMAIL"),
+            "email": BREVO_SENDER_EMAIL,
         },
         "to": [{"email": to}],
         "subject": subject,
@@ -17,7 +17,7 @@ def send_email_brevo(to, subject, html):
     }
 
     headers = {
-        "api-key": os.getenv("BREVO_API_KEY"),
+        "api-key": BREVO_API_KEY,
         "Content-Type": "application/json",
     }
 
