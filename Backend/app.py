@@ -53,9 +53,14 @@ def unauthorized():
 
 
 OTP_EXPIRY_MINUTES = 1  
+
 CORS(app,
      supports_credentials=True,
-     origins=["https://grocery-store-ue2n.onrender.com"])
+     origins=[
+        "https://grocery-store-1-sgws.onrender.com",
+        "https://grocery-store-ue2n.onrender.com"
+     ])
+
 
 MONGO_URI = os.getenv("MONGO_URI")
 name = os.getenv("ADMIN_NAME")
