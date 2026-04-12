@@ -2,6 +2,37 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --admin-bg: #F8FAFC;
+  --admin-surface: #FFFFFF;
+  --admin-accent: #059669;
+  --admin-border: #E2E8F0;
+  --admin-text-primary: #0F172A;
+  --admin-text-secondary: #64748B;
+}
+
+.admin-theme {
+  background-color: var(--admin-bg);
+  color: var(--admin-text-primary);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.admin-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  @apply rounded-2xl shadow-sm transition-all duration-300;
+}
+
+.admin-card:hover {
+  @apply shadow-xl border-emerald-500/30;
+}
+
+.admin-glass {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--admin-border);
+}
+
 .loader {
   border-width: 2px;
   border-style: solid;

@@ -1,9 +1,9 @@
-import axios from "axios";
 import { setCart } from "./cartSlice";
+import api from "../api/apiConfig";
 
 export const fetchCart = (userEmail) => async (dispatch) => {
   try {
-    const res = await axios.get(`https://grocery-store-ue2n.onrender.com/api/cart/${userEmail}`);
+    const res = await api.get(`/api/cart/${userEmail}`);
     dispatch(setCart(res.data.cart || []));
   } catch (error) {
     console.error("Failed to fetch cart:", error);
@@ -12,7 +12,7 @@ export const fetchCart = (userEmail) => async (dispatch) => {
 
 export const syncCart = (userEmail, cart) => async () => {
   try {
-    await axios.post("https://grocery-store-ue2n.onrender.com/api/cart/update", {
+    await api.post("/api/cart/update", {
       email: userEmail,
       cart: cart
     });

@@ -1,11 +1,9 @@
-import axios from "axios";
+import api from "../api/apiConfig";
 
 // Refresh user profile based on email
 export const refreshUserProfile = (email) => async (dispatch) => {
   try {
-    const res = await axios.get(
-      `https://grocery-store-ue2n.onrender.com/api/profile/${email}`
-    );
+    const res = await api.get(`/api/profile/${email}`);
 
     const updatedUser = res.data;
 

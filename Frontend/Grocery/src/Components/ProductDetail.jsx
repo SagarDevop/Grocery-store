@@ -1,7 +1,7 @@
 import "swiper/css";
 import "swiper/css/navigation";
 import "swiper/css/pagination";
-import axios from "axios";
+import api from "../api/apiConfig";
 import { useParams } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../Redux/cartSlice";
@@ -20,9 +20,7 @@ export default function ProductDetail() {
     const fetchProduct = async () => {
       try {
         console.log("🪵 Product ID from useParams:", id);
-        const res = await axios.get(
-          `https://grocery-store-ue2n.onrender.com/products/${id}`
-        );
+        const res = await api.get(`/products/${id}`);
         setProduct(res.data);
         console.log("🛍️ Fetched Product Data:", res.data);
       } catch (err) {

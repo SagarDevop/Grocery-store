@@ -3,6 +3,7 @@ import { toast } from "react-hot-toast";
 import { Store } from "lucide-react";
 import confetti from "canvas-confetti";
 import { registerSeller } from "../api/auth";
+import api from "../api/apiConfig";
 
 export default function SellerRegistration() {
   const [formData, setFormData] = useState({
@@ -31,12 +32,10 @@ const handleSubmit = async (e) => {
     await registerSeller(formData);
 
     // Step 2: Notify admin
-    await fetch("https://grocery-store-ue2n.onrender.com/notify-new-seller", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(formData),
+    await api.post("/notify-new-seller", {
+      seller_email: formData.email,
+      seller_name: formData.name,
+      store_name: formData.store,
     });
 
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });

@@ -1,37 +1,49 @@
-import axios from "axios";
+import api from "./apiConfig";
 
-const BASE_URL = "https://grocery-store-ue2n.onrender.com"; 
+export const signup = (data) => api.post(`/signup`, data);
 
-export const signup = (data) => axios.post(`${BASE_URL}/signup`, data);
+export const login = (data) => api.post(`/login`, data);
 
-export const login = (data) => axios.post(`${BASE_URL}/login`, data, { withCredentials: true });
+export const verifyOTP = (data) => api.post(`/verify-otp`, data);
 
-export const verifyOTP = (data) => axios.post(`${BASE_URL}/verify-otp`, data);
+export const googleLogin = (token) => api.post(`/google-login`, { token });
 
-export const Allproduct = () => axios.get(`${BASE_URL}/products`);
+export const fetchAdminStats = () => api.get(`/admin/stats`);
+
+export const fetchAdminActivity = () => api.get(`/admin/activity`);
+
+export const Allproduct = () => api.get(`/products`);
 
 export const forgotPassword = (email) =>
-  axios.post(`${BASE_URL}/forgot-password`, { email });
+  api.post(`/forgot-password`, { email });
 
 export const resetPassword = ({ email, otp, new_password }) =>
-  axios.post(`${BASE_URL}/reset-password`, {
+  api.post(`/reset-password`, {
     email,
     otp,
     new_password,
   });
 
 export const registerSeller = (data) =>
-  axios.post(`${BASE_URL}/register-seller`, data);
+  api.post(`/register-seller`, data);
 
 export const fetchPendingSellers = () =>
-  axios.get(`${BASE_URL}/pending-sellers`);
-
+  api.get(`/pending-sellers`);
 
 export const approveSeller = (id) =>
-  axios.post(`${BASE_URL}/approve-seller/${id}`);
+  api.post(`/approve-seller/${id}`);
 
 export const rejectSeller = (id) =>
-  axios.delete(`${BASE_URL}/reject-seller/${id}`);
+  api.delete(`/reject-seller/${id}`);
+
+export const fetchSellers = () =>
+  api.get(`/sellers`);
+
+export const fetchSellerProducts = (sellerId) =>
+  api.get(`/api/seller-products/${sellerId}`);
+
+export const fetchSellerOrders = (sellerId) =>
+  api.get(`/api/seller-orders/${sellerId}`);
 
 
 

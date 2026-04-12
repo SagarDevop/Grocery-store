@@ -45,7 +45,13 @@ function App() {
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/admin-dashboard" element={<AdminDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />}>
+           <Route path="sellers" element={<AdminDashboard />} />
+           <Route path="products" element={<AdminDashboard />} />
+           <Route path="users" element={<AdminDashboard />} />
+           <Route path="orders" element={<AdminDashboard />} />
+           <Route path="settings" element={<AdminDashboard />} />
+        </Route>
         <Route path="/products" element={<ProductList />} />
         <Route path="/search" element={<ProductList />} />
         <Route path="/category/:name" element={<CategoryPage />} />

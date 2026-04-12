@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/apiConfig";
 import ProductCard from "./ProductCard";
 
 const CategoryPage = () => {
@@ -12,7 +12,7 @@ const CategoryPage = () => {
   useEffect(() => {
     const fetchByCategory = async () => {
       try {
-        const res = await axios.get(`https://grocery-store-ue2n.onrender.com/products/category/${decodedName}`);
+        const res = await api.get(`/products/category/${decodedName}`);
         setFilteredProducts(res.data);
       } catch (err) {
         console.error("❌ Error fetching category products:", err);

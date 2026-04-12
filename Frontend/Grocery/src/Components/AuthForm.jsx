@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { signup, login, verifyOTP, forgotPassword, resetPassword } from "../api/auth";
+import { signup, login, verifyOTP, forgotPassword, resetPassword, googleLogin } from "../api/auth";
+import { auth, googleProvider } from "../Utils/firebase";
+import { signInWithPopup } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
 import { Success, Error } from "../Utils/toastUtils.js";
@@ -75,6 +77,43 @@ const AuthForm = () => {
       setMessage(errorMsg);
       Error(errorMsg);
       console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Google Sign-In Handler
+   * Initiates Firebase popup, then sends token to our backend
+   */
+  const handleGoogleLogin = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      // 1. Firebase Popup
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      // 2. Send token to our backend
+      const res = await googleLogin(idToken);
+      
+      // 3. Update Redux
+      dispatch(loginUser(res.data.user));
+      Success(`Login Successful! Welcome, ${res.data.user.name}`);
+
+      // 4. Redirect based on role
+      if (res.data.user.is_admin) navigate("/admin-dashboard");
+      else if (res.data.user.role === "seller") navigate("/seller-dashboard");
+      else navigate("/");
+
+    } catch (err) {
+      console.error("Google Auth Error:", err);
+      if (err.code === "auth/popup-closed-by-user") {
+        Error("Sign-in cancelled");
+      } else {
+        const errorMsg = err.response?.data?.error || "Google Sign-In failed.";
+        Error(errorMsg);
+      }
     } finally {
       setLoading(false);
     }
@@ -219,6 +258,21 @@ const AuthForm = () => {
                   : "Send OTP"}
               </>
             )}
+          </button>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-300"></span></div>
+            <div className="relative flex justify-center text-sm"><span className="px-2 bg-white text-gray-500">Or continue with</span></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full py-2 px-4 border border-gray-300 rounded-lg flex items-center justify-center gap-2 hover:bg-gray-50 transition font-medium"
+          >
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
+            Sign in with Google
           </button>
         </form>
 
