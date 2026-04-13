@@ -28,6 +28,7 @@ const AddProductForm = lazy(() => import('./Seller/AddProductForm'));
 import Navbar from './Components/Navbar';
 import BottomNav from './Components/ui/BottomNav';
 import InstallPrompt from './Components/ui/InstallPrompt';
+import ProtectedRoute from './Components/ProtectedRoute';
 import { Toaster } from "react-hot-toast"; 
 import { fetchCart, syncCart } from "./Redux/cartThunks";
 import { clearCart } from "./Redux/cartSlice";
@@ -75,7 +76,7 @@ function App() {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />}>
+            <Route path="/admin-dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>}>
                <Route path="sellers" element={<AdminDashboard />} />
                <Route path="products" element={<AdminDashboard />} />
                <Route path="users" element={<AdminDashboard />} />
@@ -86,17 +87,17 @@ function App() {
             <Route path="/search" element={<ProductList />} />
             <Route path="/category/:name" element={<CategoryPage />} />
             <Route path="/contact" element={<ContactUs/>} />
-            <Route path='/cart' element={<Cart/>} />
-            <Route path='/checkout' element={<CheckoutPage/>} />
+            <Route path='/cart' element={<ProtectedRoute><Cart/></ProtectedRoute>} />
+            <Route path='/checkout' element={<ProtectedRoute><CheckoutPage/></ProtectedRoute>} />
             <Route path='/seller' element={<BecomeSeller/>} />
-            <Route path="/seller-dashboard" element={<SellerDashboard />}>
+            <Route path="/seller-dashboard" element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>}>
              <Route path="sellerproductlist" element={<SellerProduct />} />
             <Route path="add-product" element={<AddProductForm />} />
             <Route path="orders" element={<SellerOrder />} />
             <Route path="profile" element={<SellerProfile />} />
             <Route path="earnings" element={<SellerEarning />} />
             </Route>
-            <Route path="/profile" element={<UserProfile />} />
+            <Route path="/profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="/auth" element={<AuthForm />} />
           </Routes>

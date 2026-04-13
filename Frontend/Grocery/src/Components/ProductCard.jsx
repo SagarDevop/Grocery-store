@@ -1,7 +1,7 @@
 import React from "react";
 import { ShoppingCart, Heart, Eye } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { addToCart } from "../Redux/cartSlice";
 import { toggleWishlist } from "../Redux/wishlistSlice";
 import { Error, Success } from "../Utils/toastUtils";
@@ -11,6 +11,7 @@ import { cn } from "../Utils/cn";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const wishlist = useSelector((state) => state.wishlist.items);
@@ -32,6 +33,7 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
     if (!user) {
       Error("Please login to add items to cart");
+      navigate("/auth", { state: { from: location } });
       return;
     }
     dispatch(addToCart(product));

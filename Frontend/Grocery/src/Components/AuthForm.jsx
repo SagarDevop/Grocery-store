@@ -5,11 +5,12 @@ import { signInWithPopup } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
 import { Success, Error } from "../Utils/toastUtils.js";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 const AuthForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useSelector((state) => state.auth.user); 
 
   const [mode, setMode] = useState("login");
@@ -30,6 +31,8 @@ const AuthForm = () => {
     if (loading) return;
     setLoading(true);
 
+    const from = location.state?.from?.pathname || "/";
+
     try {
       if (awaitingOTP) {
         const res = await verifyOTP({ email: formData.email, otp: formData.otp });
@@ -39,7 +42,7 @@ const AuthForm = () => {
         dispatch(loginUser(loginRes.data.user));
 
         setAwaitingOTP(false);
-        navigate("/");
+        navigate(from);
       } else if (mode === "signup") {
         const res = await signup(formData);
         setMessage(res.data.message);
@@ -52,8 +55,9 @@ const AuthForm = () => {
 
         if (res.data.user.is_admin) navigate("/admin-dashboard");
         else if (res.data.user.role === "seller") navigate("/seller-dashboard");
-        else navigate("/");
+        else navigate(from);
       } else if (mode === "forgot") {
+        // ... (existing forgot logic remains same)
         if (!forgotOTPStage) {
           const res = await forgotPassword(formData.email);
           Success(res.data.message);
@@ -89,6 +93,7 @@ const AuthForm = () => {
   const handleGoogleLogin = async () => {
     if (loading) return;
     setLoading(true);
+    const from = location.state?.from?.pathname || "/";
     try {
       // 1. Firebase Popup
       const result = await signInWithPopup(auth, googleProvider);
@@ -101,10 +106,10 @@ const AuthForm = () => {
       dispatch(loginUser(res.data.user));
       Success(`Login Successful! Welcome, ${res.data.user.name}`);
 
-      // 4. Redirect based on role
+      // 4. Redirect based on role or 'from'
       if (res.data.user.is_admin) navigate("/admin-dashboard");
       else if (res.data.user.role === "seller") navigate("/seller-dashboard");
-      else navigate("/");
+      else navigate(from);
 
     } catch (err) {
       console.error("Google Auth Error:", err);

@@ -3,7 +3,8 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import api from "../api/apiConfig";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Success, Error } from "../Utils/toastUtils";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../Redux/cartSlice";
 import { useEffect, useState } from "react";
@@ -31,7 +32,9 @@ import { cn } from "../Utils/cn";
 export default function ProductDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { id } = useParams();
+  const user = useSelector((state) => state.auth.user);
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [viewers] = useState(Math.floor(Math.random() * 20) + 12);
@@ -57,10 +60,21 @@ export default function ProductDetail() {
   }, [id]);
 
   const handleAddToCart = () => {
+    if (!user) {
+      Error("Please login to add items to cart");
+      navigate("/auth", { state: { from: location } });
+      return;
+    }
     dispatch(addToCart(product));
+    Success(`${product.name} added to cart!`);
   };
 
   const handleBuyNow = () => {
+    if (!user) {
+      Error("Please login to proceed to checkout");
+      navigate("/auth", { state: { from: location } });
+      return;
+    }
     dispatch(addToCart(product));
     navigate('/cart');
   };
