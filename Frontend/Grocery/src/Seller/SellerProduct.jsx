@@ -52,7 +52,7 @@ export default function SellerProduct() {
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) return;
     try {
-        await api.delete(`/product/${id}`);
+        await api.delete(`/api/products/${id}`);
         toast.success("Product deleted successfully");
         loadProducts();
     } catch (err) {

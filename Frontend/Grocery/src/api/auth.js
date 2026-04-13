@@ -12,7 +12,7 @@ export const fetchAdminStats = () => api.get(`/admin/stats`);
 
 export const fetchAdminActivity = () => api.get(`/admin/activity`);
 
-export const Allproduct = () => api.get(`/products`);
+export const Allproduct = (params = {}) => api.get(`/api/products`, { params });
 
 export const forgotPassword = (email) =>
   api.post(`/forgot-password`, { email });
@@ -44,6 +44,11 @@ export const fetchSellerProducts = (sellerId) =>
 
 export const fetchSellerOrders = (sellerId) =>
   api.get(`/api/seller-orders/${sellerId}`);
+
+// Wishlist Endpoints
+export const getWishlist = () => api.get(`/api/wishlist`);
+export const toggleWishlist = (productId) => api.post(`/api/wishlist/toggle`, { productId });
+
 
 
 

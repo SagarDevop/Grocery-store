@@ -8,16 +8,30 @@ import App from "./App.jsx";
 import store  from "./Redux/Store";
 import { Provider } from "react-redux";
 import { BrowserRouter } from "react-router-dom";
+import { ThemeProvider } from "./context/ThemeContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <BrowserRouter>
-        
+      <ThemeProvider>
+        <BrowserRouter>
           <App />
-        
-      </BrowserRouter>
+        </BrowserRouter>
+      </ThemeProvider>
     </Provider>
   </StrictMode>
 );
 
+// Register Service Worker for PWA
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        console.log("SW registered: ", registration);
+      })
+      .catch((registrationError) => {
+        console.log("SW registration failed: ", registrationError);
+      });
+  });
+}

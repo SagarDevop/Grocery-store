@@ -4,20 +4,34 @@ const mongoose = require('mongoose');
 
 /**
  * List all products
+ * Query Params: page, limit, category, sort
  */
 exports.getAllProducts = async (req, res) => {
   try {
-    const products = await Product.find();
-    
-    // The Flask app converts ObjectIds to strings in the response
-    // Mongoose handles this well, but we ensure the output format matches
-    const formattedProducts = products.map(p => ({
-      ...p._doc,
-      _id: p._id.toString(),
-      seller_id: p.seller_id.toString()
-    }));
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
 
-    res.status(200).json(formattedProducts);
+    const query = {};
+    if (req.query.category) query.category = req.query.category;
+
+    // Use projections to only select needed fields for list view
+    const products = await Product.find(query)
+      .select('name price images category stock amount unit averageRating totalReviews')
+      .sort({ created_at: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    const total = await Product.countDocuments(query);
+
+    res.status(200).json({
+      products,
+      pagination: {
+        total,
+        page,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     console.error("Get Products Error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -133,3 +147,71 @@ exports.addProduct = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+/**
+ * Get Popular Products (Best Sellers)
+ * Uses total quantity sold in successful orders as a metric.
+ */
+exports.getPopularProducts = async (req, res) => {
+  try {
+    const Order = require('../models/Order');
+    
+    // Aggregate orders to find top products
+    const popularData = await Order.aggregate([
+      { $match: { status: { $ne: 'CANCELLED' } } },
+      { $unwind: '$items' },
+      {
+        $group: {
+          _id: '$items.product_id',
+          totalSold: { $sum: '$items.quantity' }
+        }
+      },
+      { $sort: { totalSold: -1 } },
+      { $limit: 8 }
+    ]);
+
+    const productIds = popularData.map(item => item._id);
+    const products = await Product.find({ _id: { $in: productIds } });
+
+    res.status(200).json(products);
+  } catch (error) {
+    console.error("Get Popular Products Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Update a product
+ */
+exports.updateProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    const product = await Product.findByIdAndUpdate(id, updates, { new: true });
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    res.status(200).json({ message: "Product updated", product });
+  } catch (error) {
+    console.error("Update Product Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Delete a product
+ */
+exports.deleteProduct = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) return res.status(404).json({ error: "Product not found" });
+
+    res.status(200).json({ message: "Product deleted" });
+  } catch (error) {
+    console.error("Delete Product Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+module.exports = exports;

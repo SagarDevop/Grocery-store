@@ -9,12 +9,16 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-  // Read token from cookie
-  token = req.cookies.token;
+    // Check for token in cookie OR authorization header
+    if (req.cookies.token) {
+        token = req.cookies.token;
+    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    }
 
-  if (!token) {
-    return res.status(401).json({ error: "Login required" });
-  }
+    if (!token) {
+        return res.status(401).json({ error: "Login required" });
+    }
 
   try {
     // Verify token

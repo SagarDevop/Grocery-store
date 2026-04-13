@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Seller = require('../models/Seller');
 const Product = require('../models/Product');
@@ -56,6 +57,11 @@ exports.getDashboardStats = async (req, res) => {
             commission: item.commission
         }));
 
+        // Dynamic System Health
+        const startTime = Date.now();
+        await mongoose.connection.db.admin().ping();
+        const latency = Date.now() - startTime;
+
         res.status(200).json({
             stats: [
                 { id: 1, label: 'Platform GMV', value: `₹${platformGMV.toLocaleString()}`, trend: 0, type: 'currency' },
@@ -75,8 +81,8 @@ exports.getDashboardStats = async (req, res) => {
             totalProducts,
             systemHealth: {
                 status: 'operational',
-                uptime: '99.9%',
-                latency: '45ms'
+                uptime: `${Math.floor(process.uptime() / 3600)}h ${Math.floor((process.uptime() % 3600) / 60)}m`,
+                latency: `${latency}ms`
             }
         });
     } catch (error) {
@@ -112,6 +118,19 @@ exports.getDashboardActivity = async (req, res) => {
         res.status(200).json(activity);
     } catch (error) {
         console.error("Recent Activity Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * List all active/verified sellers
+ */
+exports.getSellers = async (req, res) => {
+    try {
+        const sellers = await Seller.find().sort({ createdAt: -1 });
+        res.status(200).json(sellers);
+    } catch (error) {
+        console.error("Fetch Sellers Error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };
@@ -185,14 +204,64 @@ exports.rejectSeller = async (req, res) => {
 };
 
 /**
- * List all active sellers
+ * List all users with basic pagination
  */
-exports.getSellers = async (req, res) => {
+exports.getUsers = async (req, res) => {
     try {
-        const sellers = await Seller.find().sort({ createdAt: -1 });
-        res.status(200).json(sellers);
+        const users = await User.find().select('-password').sort({ createdAt: -1 });
+        res.status(200).json(users);
     } catch (error) {
-        console.error("Fetch Active Sellers Error:", error);
+        console.error("Fetch Users Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * List all orders platform-wide
+ */
+exports.getAllOrders = async (req, res) => {
+    try {
+        const orders = await Order.find()
+            .populate('user_id', 'name email')
+            .sort({ createdAt: -1 });
+        res.status(200).json(orders);
+    } catch (error) {
+        console.error("Fetch All Orders Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * Fetch all platform security/audit logs
+ */
+exports.getActivityLogs = async (req, res) => {
+    try {
+        const AuditLog = require('../models/AuditLog');
+        const logs = await AuditLog.find()
+            .populate('admin_id', 'name email')
+            .sort({ createdAt: -1 })
+            .limit(100);
+        res.status(200).json(logs);
+    } catch (error) {
+        console.error("Fetch Audit Logs Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * Update user role/admin status
+ */
+exports.updateUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { is_admin, role } = req.body;
+        
+        const user = await User.findByIdAndUpdate(id, { is_admin, role }, { new: true }).select('-password');
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        res.status(200).json({ message: "User updated", user });
+    } catch (error) {
+        console.error("Update User Error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };

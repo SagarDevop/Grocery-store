@@ -1,19 +1,21 @@
+const Cart = require('../models/Cart');
 const User = require('../models/User');
 
 /**
- * Fetch a user's cart by email
- * In Flask: @app.route("/api/cart/<email>", methods=["GET"])
+ * Fetch a user's cart
  */
 exports.getUserCart = async (req, res) => {
   try {
     const { email } = req.params;
     const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ error: "User not found" });
 
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+    let cart = await Cart.findOne({ userId: user._id }).populate('items.productId');
+    if (!cart) {
+      cart = await Cart.create({ userId: user._id, items: [] });
     }
 
-    res.status(200).json({ cart: user.cart || [] });
+    res.status(200).json({ cart: cart.items });
   } catch (error) {
     console.error("Fetch Cart Error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -21,23 +23,57 @@ exports.getUserCart = async (req, res) => {
 };
 
 /**
- * Update the current user's cart in the database
- * Requires login. Matches @app.route("/api/cart/update", methods=["POST"])
+ * Update the current user's cart
  */
 exports.updateUserCart = async (req, res) => {
   try {
-    const { cart } = req.body;
-
-    // req.user has been populated by the 'protect' middleware
-    const user = await User.findById(req.user._id);
-    if (!user) {
-        return res.status(404).json({ error: "User not found" });
+    const { cart } = req.body; // Support 'cart' key from frontend
+    const cartItems = cart || req.body.cartItems || [];
+    
+    // Validate data structure
+    if (!Array.isArray(cartItems)) {
+        return res.status(400).json({ error: "Cart items must be an array" });
     }
 
-    user.cart = cart;
-    await user.save();
+    // req.user from authMiddleware
+    let userCart = await Cart.findOne({ userId: req.user._id });
+    
+    if (!userCart) {
+      userCart = new Cart({ 
+          userId: req.user._id, 
+          items: cartItems.map(item => ({
+              productId: item._id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              image: item.image || (item.images && item.images[0])
+          })) 
+      });
+    } else {
+      userCart.items = cartItems.map(item => ({
+          productId: item._id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          image: item.image || (item.images && item.images[0])
+      }));
+    }
 
-    res.status(200).json({ message: "Cart updated" });
+    await userCart.save();
+
+    // 🛒 Schedule Abandoned Cart Recovery (Delayed Job)
+    const { emailQueue } = require('../services/queueService');
+    // Remove existing delay job if any to reset the clock
+    await emailQueue.removeJobs(`abandoned-${req.user._id}`);
+    await emailQueue.add({
+        type: 'ABANDONED_CART',
+        data: { userId: req.user._id }
+    }, { 
+        jobId: `abandoned-${req.user._id}`,
+        delay: 24 * 60 * 60 * 1000 // 24 Hours
+    });
+
+    res.status(200).json({ message: "Cart synced successfully" });
   } catch (error) {
     console.error("Update Cart Error:", error);
     res.status(500).json({ error: "Internal server error" });

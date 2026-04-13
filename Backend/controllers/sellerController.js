@@ -3,6 +3,7 @@ const Seller = require('../models/Seller');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const Transaction = require('../models/Transaction');
 const { sendSellerEmail, sendAdminNotificationNewSeller } = require('../services/emailService');
 
 /**
@@ -164,13 +165,77 @@ exports.getSellerSummary = async (req, res) => {
   const { sellerId } = req.query;
 
   try {
-    const totalProducts = await Product.countDocuments({ seller_id: sellerId });
+    const mongoose = require('mongoose');
+    const sId = new mongoose.Types.ObjectId(sellerId);
+
+    // 1. Total Products
+    const totalProducts = await Product.countDocuments({ seller_id: sId });
+
+    // 2. Earnings Aggregation from Transactions
+    const earningsResult = await Transaction.aggregate([
+      { $match: { seller_id: sId, type: 'SALE', status: 'COMPLETED' } },
+      { $group: { _id: null, total: { $sum: "$net_amount" } } }
+    ]);
+    const earnings = earningsResult[0]?.total || 0;
+
+    // 3. Orders Count (Unique orders containing products from this seller)
+    const ordersCount = await Order.countDocuments({ "items.seller_id": sId });
+
+    // 4. Pending Orders Count
+    const pendingOrdersCount = await Order.countDocuments({ 
+      "items.seller_id": sId,
+      status: { $in: ['PLACED', 'PROCESSING'] }
+    });
+
+    // 5. Sales Trend (Last 7 Days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const salesTrend = await Transaction.aggregate([
+      { 
+        $match: { 
+          seller_id: sId, 
+          createdAt: { $gte: sevenDaysAgo },
+          type: 'SALE',
+          status: 'COMPLETED'
+        } 
+      },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          sales: { $sum: "$net_amount" }
+        }
+      },
+      { $sort: { "_id": 1 } }
+    ]);
+
+    const formattedTrend = salesTrend.map(item => ({
+      name: item._id.split('-').slice(2).join('/'), // DD
+      sales: item.sales
+    }));
+
+    // 6. Recent Notifications (Fetch real Audit Logs or simple recent activities)
+    const notifications = [
+      `You have ${totalProducts} active products in catalog.`,
+      `Lifetime earnings reached ₹${earnings.toLocaleString()}.`,
+      `${ordersCount} total orders processed by your store.`
+    ];
+
     res.status(200).json({
       totalProducts,
-      orders: 24, // Mock for now
-      earnings: 45000, // Mock for now
-      pendingOrders: 5, // Mock for now
-      notifications: ["New order received", "Product approved", "Payout credited"]
+      orders: ordersCount,
+      earnings: earnings,
+      pendingOrders: pendingOrdersCount,
+      notifications: notifications,
+      salesTrend: formattedTrend.length > 0 ? formattedTrend : [
+        { name: 'Mon', sales: 0 },
+        { name: 'Tue', sales: 0 },
+        { name: 'Wed', sales: 0 },
+        { name: 'Thu', sales: 0 },
+        { name: 'Fri', sales: 0 },
+        { name: 'Sat', sales: 0 },
+        { name: 'Sun', sales: 0 }
+      ]
     });
   } catch (error) {
     console.error("Seller Summary Error:", error);

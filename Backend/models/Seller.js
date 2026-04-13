@@ -49,6 +49,14 @@ const SellerSchema = new mongoose.Schema({
     type: String,
     default: 'seller',
   },
+  sellerRating: {
+    type: Number,
+    default: 0,
+  },
+  totalSales: {
+    type: Number,
+    default: 0,
+  },
   approved_at: {
     type: Date,
     default: Date.now,

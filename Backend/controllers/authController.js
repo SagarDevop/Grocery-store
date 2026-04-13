@@ -140,6 +140,10 @@ exports.login = async (req, res) => {
     }
 
     // Validate password
+    if (!target.password) {
+      return res.status(401).json({ error: "Email registered via Google. Please use Google Login." });
+    }
+
     const isMatch = await bcrypt.compare(password, target.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });

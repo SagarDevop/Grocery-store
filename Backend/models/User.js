@@ -42,15 +42,29 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'seller'],
     default: 'user',
   },
-  // Cart is an array of items, matching Flask's "cart": []
-  cart: [
+  phone: {
+    type: String,
+  },
+  addresses: [
     {
-      _id: { type: String, required: true },
-      name: { type: String, required: true },
-      price: { type: Number, required: true },
-      quantity: { type: Number, required: true },
-      image: { type: String },
-      images: [String],
+      label: { type: String, default: 'Home' }, // Home, Office, etc.
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      zip: { type: String },
+      isDefault: { type: Boolean, default: false }
+    }
+  ],
+  wishlist: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
+    }
+  ],
+  recently_viewed: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Product'
     }
   ],
   reset_otp: {

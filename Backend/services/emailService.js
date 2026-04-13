@@ -84,9 +84,74 @@ const sendAdminNotificationNewSeller = (data) => {
   );
 };
 
+const sendOrderConfirmation = (receiverEmail, orderData) => {
+  const itemsHtml = orderData.items.map(item => `
+    <tr>
+      <td>${item.name}</td>
+      <td>${item.quantity}</td>
+      <td>₹${item.price}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee;">
+      <h2 style="color: #059669;">Thank you for your order!</h2>
+      <p>Your order <b>#${orderData._id}</b> has been received and is being processed.</p>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f8fafc; text-align: left;">
+            <th style="padding: 10px;">Item</th>
+            <th style="padding: 10px;">Qty</th>
+            <th style="padding: 10px;">Price</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+      <h3 style="margin-top: 20px;">Total: ₹${orderData.total_amount}</h3>
+      <p>We'll notify you when it ships!</p>
+    </div>
+  `;
+  return sendEmail(receiverEmail, "📦 Order Confirmation", html);
+};
+
+const sendOrderStatusUpdate = (receiverEmail, orderId, status) => {
+  const html = `
+    <div style="font-family: Arial, sans-serif; text-align: center; padding: 40px;">
+      <div style="font-size: 50px; margin-bottom: 20px;">🚚</div>
+      <h2 style="color: #1e293b;">Order Status Updated</h2>
+      <p>Your order <b>#${orderId}</b> is now: <span style="background: #e1f5fe; color: #0288d1; padding: 5px 15px; border-radius: 20px; font-weight: bold;">${status}</span></p>
+      <a href="http://localhost:3000/profile" style="display: inline-block; margin-top: 30px; padding: 15px 30px; background: #059669; color: white; text-decoration: none; border-radius: 10px; font-weight: bold;">Track My Order</a>
+    </div>
+  `;
+  return sendEmail(receiverEmail, `🚀 Order Status: ${status}`, html);
+};
+
+const sendAbandonedCartEmail = (receiverEmail, name, cartItems) => {
+  const itemNames = cartItems.slice(0, 3).map(i => i.name).join(', ');
+  const moreCount = cartItems.length > 3 ? `and ${cartItems.length - 3} more items` : '';
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 40px; border: 1px solid #eee; text-align: center;">
+      <div style="font-size: 60px; margin-bottom: 20px;">🛒</div>
+      <h2 style="color: #1e293b;">Did you forget something, ${name}?</h2>
+      <p style="color: #64748b; font-size: 16px; line-height: 1.6;">Your cart is feeling lonely! We've saved your items so you can pick up exactly where you left off.</p>
+      <div style="background: #f8fafc; padding: 20px; border-radius: 20px; margin: 30px 0; text-align: left;">
+        <p style="font-weight: bold; color: #334155; margin-bottom: 5px;">Items in your cart:</p>
+        <p style="color: #64748b; margin: 0;">${itemNames} ${moreCount}</p>
+      </div>
+      <a href="http://localhost:5173/cart" style="display: inline-block; padding: 18px 35px; background: #059669; color: white; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 16px; shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.2);">Return to Cart 🥗</a>
+      <p style="margin-top: 30px; font-size: 12px; color: #94a3b8;">Hurry! Your organic items are in high demand and we can't guarantee stock for long.</p>
+    </div>
+  `;
+  return sendEmail(receiverEmail, "🛒 Your cart is waiting for you!", html);
+};
+
 module.exports = {
   sendOtpEmailSignup,
   sendOtpEmailForgotPassword,
   sendSellerEmail,
   sendAdminNotificationNewSeller,
+  sendOrderConfirmation,
+  sendOrderStatusUpdate,
+  sendAbandonedCartEmail
 };

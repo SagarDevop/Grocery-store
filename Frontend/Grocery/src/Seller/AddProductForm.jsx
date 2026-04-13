@@ -91,10 +91,10 @@ const AddProductForm = () => {
     try {
       setSubmitting(true);
       if (editProduct) {
-        await api.put(`/product/${editProduct._id}`, payload);
+        await api.put(`/api/products/${editProduct._id}`, payload);
         toast.success("Product updated successfully!");
       } else {
-        await api.post("/add-product", payload);
+        await api.post("/api/products", payload);
         toast.success("New product listed successfully!");
       }
       navigate("/seller-dashboard/sellerproductlist");

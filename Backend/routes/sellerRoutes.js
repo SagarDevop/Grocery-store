@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const sellerController = require('../controllers/sellerController');
 const { protect } = require('../middleware/authMiddleware');
+const { validateRequest, sellerRegisterSchema } = require('../middleware/validation');
 const { authorize } = require('../middleware/roleMiddleware');
 
 // Public endpoints
-router.post('/register-seller', sellerController.registerSeller);
+router.post('/register-seller', validateRequest(sellerRegisterSchema), sellerController.registerSeller);
 router.post('/notify-new-seller', sellerController.notifyAdminNewSeller);
 router.get('/api/current-seller/:email', sellerController.getCurrentSeller);
 router.get('/api/profile/:email', sellerController.getProfile);

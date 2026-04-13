@@ -1,6 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { getDashboardStats, getDashboardActivity, approveSeller, rejectSeller, getPendingSellers, getSellers } = require('../controllers/adminController');
+const { 
+    getDashboardStats, 
+    getDashboardActivity, 
+    approveSeller, 
+    rejectSeller, 
+    getPendingSellers, 
+    getSellers,
+    getUsers,
+    getAllOrders,
+    getActivityLogs,
+    updateUser
+} = require('../controllers/adminController');
 const { protect, adminOnly } = require('../middleware/authMiddleware');
 const auditLogger = require('../middleware/auditLogger');
 
@@ -19,5 +30,11 @@ router.get('/sellers', protect, adminOnly, getSellers);
 // Seller Management Actions (Audited & Parameterized as per api/auth.js)
 router.post('/approve-seller/:id', protect, adminOnly, auditLogger('APPROVE_SELLER', 'SELLER'), approveSeller);
 router.delete('/reject-seller/:id', protect, adminOnly, auditLogger('REJECT_SELLER', 'SELLER'), rejectSeller);
+
+// Admin Global Views
+router.get('/users', protect, adminOnly, getUsers);
+router.get('/orders/all', protect, adminOnly, getAllOrders);
+router.get('/audit-logs', protect, adminOnly, getActivityLogs);
+router.put('/user/:id', protect, adminOnly, auditLogger('UPDATE_USER_ROLE', 'USER'), updateUser);
 
 module.exports = router;

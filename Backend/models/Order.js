@@ -10,6 +10,10 @@ const OrderSchema = new mongoose.Schema({
     ref: 'User',
     required: true,
   },
+  subtotal: { type: Number, required: true },
+  discount_amount: { type: Number, default: 0 },
+  coupon_code: { type: String, default: null },
+  delivery_fee: { type: Number, default: 0 },
   items: [
     {
       product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
@@ -50,7 +54,10 @@ const OrderSchema = new mongoose.Schema({
       comment: String,
       timestamp: { type: Date, default: Date.now }
     }
-  ]
+  ],
+  razorpay_order_id: String,
+  razorpay_payment_id: String,
+  razorpay_signature: String
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', OrderSchema);
