@@ -4,7 +4,7 @@ import axios from 'axios';
  * Global API Configuration
  * Toggle between local and production backend here.
  */
-const IS_PRODUCTION = false; // Set to true when deploying
+const IS_PRODUCTION = true; // Set to true when deploying
 const LOCAL_URL = 'http://localhost:5000';
 const PROD_URL = 'https://grocery-store-ue2n.onrender.com';
 

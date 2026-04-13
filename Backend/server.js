@@ -35,6 +35,7 @@ const app = express();
 const allowedOrigins = [
   'https://grocomart.netlify.app',
   'https://grocery-grocery.vercel.app',
+  'https://grocery-store-1-sgws.onrender.com', // New Frontend URL
   'http://localhost:5173'
 ];
 
