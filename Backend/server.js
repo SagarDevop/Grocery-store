@@ -54,6 +54,7 @@ const app = express();
 const allowedOrigins = [
   'https://grocomart.netlify.app',
   'https://grocery-grocery.vercel.app',
+  'https://grocery-store-1-sgws.onrender.com',
   'http://localhost:5173'
 ];
 
@@ -71,7 +72,7 @@ app.use(cors({
 }));
 
 app.use(helmet({
-  crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" },
   crossOriginResourcePolicy: { policy: "cross-origin" }, // Required for image loading from CDN
   contentSecurityPolicy: {
     directives: {
