@@ -39,12 +39,50 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['user', 'seller'],
+    enum: ['user', 'seller', 'admin'],
     default: 'user',
   },
   phone: {
     type: String,
   },
+  // --- Seller Specific Fields ---
+  storeName: {
+    type: String,
+  },
+  storeDescription: {
+    type: String,
+  },
+  storeCity: {
+    type: String,
+  },
+  sellerStatus: {
+    type: String,
+    enum: ['PENDING', 'ACTIVE', 'SUSPENDED', 'REJECTED'],
+    default: 'PENDING',
+  },
+  commission_rate: {
+    type: Number,
+    default: 10,
+  },
+  sellerRating: {
+    type: Number,
+    default: 0,
+  },
+  totalSellerSales: {
+    type: Number,
+    default: 0,
+  },
+  sellerApprovedAt: {
+    type: Date,
+  },
+  verification_docs: [
+    {
+      doc_type: String,
+      url: String,
+      status: { type: String, default: 'PENDING' }
+    }
+  ],
+  // --- End Seller Fields ---
   addresses: [
     {
       label: { type: String, default: 'Home' }, // Home, Office, etc.
@@ -53,6 +91,15 @@ const UserSchema = new mongoose.Schema({
       state: { type: String },
       zip: { type: String },
       isDefault: { type: Boolean, default: false }
+    }
+  ],
+  cart: [
+    {
+      productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+      name: String,
+      price: Number,
+      quantity: { type: Number, default: 1 },
+      image: String
     }
   ],
   wishlist: [
@@ -72,6 +119,10 @@ const UserSchema = new mongoose.Schema({
   },
   reset_otp_expiry: {
     type: Date,
+  },
+  reset_otp_attempts: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 

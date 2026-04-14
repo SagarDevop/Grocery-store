@@ -49,11 +49,7 @@ export default function Navbar() {
 
   const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
 
-  useEffect(() => {
-    if (user?.email) {
-      dispatch(refreshUserProfile(user.email));
-    }
-  }, [dispatch, user?.email]);
+  // Auth and state sync is now handled centrally in App.jsx
 
   const handleSearch = (e) => {
     if (e.key === "Enter" || e.type === "click") {
@@ -115,7 +111,7 @@ export default function Navbar() {
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center gap-2 sm:gap-3">
+            <div className="flex items-center gap-3">
               {/* SearchBar - Desktop */}
               <div className="hidden lg:flex items-center relative group">
                 <input
@@ -129,7 +125,7 @@ export default function Navbar() {
                 <Search className="absolute left-3 text-slate-400 group-focus-within:text-brand-500" size={18} />
               </div>
 
-              {/* Theme Toggle - Always visible */}
+              {/* Theme Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
@@ -139,100 +135,97 @@ export default function Navbar() {
                 {darkMode ? <Sun size={20} /> : <Moon size={20} />}
               </Button>
 
-              {/* Desktop Only Actions */}
-              <div className="hidden md:flex items-center gap-3">
-                {/* Cart */}
-                <Link to="/cart">
-                  <Button variant="ghost" size="icon" className="relative text-slate-600 dark:text-slate-400">
-                    <ShoppingCart size={22} />
-                    {totalItems > 0 && (
-                      <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-in fade-in zoom-in">
-                        {totalItems}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
+              {/* Cart */}
+              <Link to="/cart">
+                <Button variant="ghost" size="icon" className="relative text-slate-600 dark:text-slate-400">
+                  <ShoppingCart size={22} />
+                  {totalItems > 0 && (
+                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-brand-500 text-[10px] font-bold text-white ring-2 ring-white dark:ring-slate-900 animate-in fade-in zoom-in">
+                      {totalItems}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
-                {/* User Menu */}
-                {user ? (
-                  <div className="relative">
-                    <button
-                      onClick={() => setUserMenuOpen(!userMenuOpen)}
-                      className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300"
-                    >
-                      <div className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold shadow-md shadow-brand-500/20">
-                        {user.name[0].toUpperCase()}
-                      </div>
-                    </button>
+              {/* User Menu */}
+              {user ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="flex items-center gap-2 p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-300"
+                  >
+                    <div className="w-9 h-9 rounded-full bg-brand-500 flex items-center justify-center text-white font-bold shadow-md shadow-brand-500/20">
+                      {user?.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                  </button>
 
-                    <AnimatePresence>
-                      {userMenuOpen && (
-                        <>
-                          <div 
-                            className="fixed inset-0 z-40" 
-                            onClick={() => setUserMenuOpen(false)} 
-                          />
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                            className="absolute right-0 mt-3 w-56 rounded-2xl bg-white dark:bg-surface-dark-gray shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden"
-                          >
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-800">
-                              <p className="text-sm font-bold truncate">{user.name}</p>
-                              <p className="text-xs text-slate-500 truncate">{user.email}</p>
-                            </div>
-                            <div className="p-2">
-                              <Link to="/profile">
-                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                                  <User size={18} className="text-slate-400" />
-                                  My Profile
+                  <AnimatePresence>
+                    {userMenuOpen && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setUserMenuOpen(false)} 
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                          className="absolute right-0 mt-3 w-56 rounded-2xl bg-white dark:bg-surface-dark-gray shadow-2xl ring-1 ring-black/5 z-50 overflow-hidden"
+                        >
+                          <div className="p-4 border-b border-slate-100 dark:border-slate-800">
+                            <p className="text-sm font-bold truncate">{user.name}</p>
+                            <p className="text-xs text-slate-500 truncate">{user.email}</p>
+                          </div>
+                          <div className="p-2">
+                            <Link to="/profile">
+                              <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                <User size={18} className="text-slate-400" />
+                                My Profile
+                              </button>
+                            </Link>
+                            {user?.is_admin && (
+                              <Link to="/admin-dashboard">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-emerald-600">
+                                  <LayoutDashboard size={18} />
+                                  Admin Dashboard
                                 </button>
                               </Link>
-                              {user?.is_admin && (
-                                <Link to="/admin-dashboard">
-                                  <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-emerald-600">
-                                    <LayoutDashboard size={18} />
-                                    Admin Dashboard
-                                  </button>
-                                </Link>
-                              )}
-                              {user?.role === "seller" && (
-                                <Link to="/seller-dashboard">
-                                  <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-brand-600">
-                                    <Store size={18} />
-                                    Seller Dashboard
-                                  </button>
-                                </Link>
-                              )}
-                              <button
-                                onClick={handleLogout}
-                                className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
-                              >
-                                <LogOut size={18} />
-                                Log Out
-                              </button>
-                            </div>
-                          </motion.div>
-                        </>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                ) : (
-                  <Button variant="primary" size="sm" onClick={() => navigate("/auth")}>
-                    Sign In
-                  </Button>
-                )}
-              </div>
+                            )}
+                            {user?.role === "seller" && (
+                              <Link to="/seller-dashboard">
+                                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-brand-600">
+                                  <Store size={18} />
+                                  Seller Dashboard
+                                </button>
+                              </Link>
+                            )}
+                            <button
+                              onClick={handleLogout}
+                              className="w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 transition-colors"
+                            >
+                              <LogOut size={18} />
+                              Log Out
+                            </button>
+                          </div>
+                        </motion.div>
+                      </>
+                    )}
+                  </AnimatePresence>
+                </div>
+              ) : (
+                <Button variant="primary" size="sm" onClick={() => navigate("/auth")}>
+                  Sign In
+                </Button>
+              )}
 
-              {/* Mobile Search Trigger */}
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              {/* Mobile Menu Toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => setMobileOpen(true)}
                 className="md:hidden text-slate-600 dark:text-slate-400"
               >
-                <Search size={22} />
+                <Menu size={24} />
               </Button>
             </div>
           </div>

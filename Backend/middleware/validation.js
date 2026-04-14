@@ -42,7 +42,9 @@ const productSchema = Joi.object({
     description: Joi.string().required(),
     price: Joi.number().required().min(0),
     category: Joi.string().required(),
-    image_url: Joi.string().uri().optional(),
+    images: Joi.array().items(Joi.string().uri()).required(),
+    amount: Joi.number().required().min(0),
+    unit: Joi.string().required(),
     stock: Joi.number().required().min(0),
     seller_id: Joi.string().required()
 });

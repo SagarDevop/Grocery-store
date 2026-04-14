@@ -1,9 +1,8 @@
-const PendingSeller = require('../models/PendingSeller');
-const Seller = require('../models/Seller');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
+const Cart = require('../models/Cart');
 const { sendSellerEmail, sendAdminNotificationNewSeller } = require('../services/emailService');
 
 /**
@@ -17,13 +16,21 @@ exports.registerSeller = async (req, res) => {
   }
 
   try {
-    const newPending = await PendingSeller.create({
-      name, phone, email, city, store, products
-    });
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found. Please sign up first." });
+    }
 
-    res.status(201).json({ 
+    user.storeName = store;
+    user.storeCity = city;
+    user.storeDescription = products;
+    user.phone = phone;
+    user.sellerStatus = 'PENDING';
+    await user.save();
+
+    res.status(200).json({ 
       message: "Registration successful. Admin will review soon.",
-      registration_id: newPending._id.toString()
+      user_id: user._id.toString()
     });
   } catch (error) {
     console.error("Register Seller Error:", error);
@@ -49,7 +56,7 @@ exports.notifyAdminNewSeller = async (req, res) => {
  */
 exports.getPendingSellers = async (req, res) => {
   try {
-    const pending = await PendingSeller.find();
+    const pending = await User.find({ sellerStatus: 'PENDING' });
     res.status(200).json(pending);
   } catch (error) {
     console.error("Get Pending Error:", error);
@@ -59,40 +66,24 @@ exports.getPendingSellers = async (req, res) => {
 
 /**
  * Approve a seller (Admin only)
- * Moves from PendingSeller to Seller and updates User role
  */
 exports.approveSeller = async (req, res) => {
   const { seller_id } = req.params;
 
   try {
-    const pending = await PendingSeller.findById(seller_id);
-    if (!pending) {
-      return res.status(404).json({ error: "Request not found" });
-    }
-
-    const user = await User.findOne({ email: pending.email });
+    const user = await User.findById(seller_id);
     if (!user) {
-        return res.status(404).json({ error: "User account not found for this email" });
+      return res.status(404).json({ error: "User not found" });
     }
-
-    const newSeller = await Seller.create({
-      name: pending.name,
-      email: pending.email,
-      phone: pending.phone,
-      city: pending.city,
-      store: pending.store,
-      products: pending.products,
-      password: user.password,
-      role: 'seller'
-    });
 
     user.role = 'seller';
+    user.sellerStatus = 'ACTIVE';
+    user.sellerApprovedAt = Date.now();
     await user.save();
 
-    await PendingSeller.findByIdAndDelete(seller_id);
-    await sendSellerEmail(pending.email, "approved", pending.name);
+    await sendSellerEmail(user.email, "approved", user.name);
 
-    res.status(200).json({ message: "Seller approved", seller_id: newSeller._id.toString() });
+    res.status(200).json({ message: "Seller approved", seller_id: user._id.toString() });
   } catch (error) {
     console.error("Approve Seller Error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -106,13 +97,15 @@ exports.rejectSeller = async (req, res) => {
   const { seller_id } = req.params;
 
   try {
-    const pending = await PendingSeller.findById(seller_id);
-    if (!pending) {
-      return res.status(404).json({ error: "Request not found" });
+    const user = await User.findById(seller_id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
     }
 
-    await sendSellerEmail(pending.email, "rejected", pending.name);
-    await PendingSeller.findByIdAndDelete(seller_id);
+    user.sellerStatus = 'REJECTED';
+    await user.save();
+
+    await sendSellerEmail(user.email, "rejected", user.name);
 
     res.status(200).json({ message: "Seller rejected" });
   } catch (error) {
@@ -121,37 +114,26 @@ exports.rejectSeller = async (req, res) => {
   }
 };
 
-/**
- * Get current seller details by email
- */
-exports.getCurrentSeller = async (req, res) => {
-  try {
-    const { email } = req.params;
-    const seller = await Seller.findOne({ email });
-    if (!seller) {
-      return res.status(404).json({ error: "Seller not found" });
-    }
-    res.status(200).json(seller);
-  } catch (error) {
-    console.error("Fetch Current Seller Error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-};
 
 /**
- * Get user/seller profile
+ * Get current authenticated user/seller profile
  */
 exports.getProfile = async (req, res) => {
     try {
-      const { email } = req.params;
-      const user = await User.findOne({ email }).select('-password');
-      const seller = await Seller.findOne({ email }).select('-password');
+      // Identity securely extracted from JWT in authMiddleware
+      const user = await User.findById(req.user._id)
+        .select('name email role is_admin profileImage phone storeName storeCity storeDescription sellerStatus sellerRating');
   
-      const target = user || seller;
-      if (!target) {
+      if (!user) {
         return res.status(404).json({ error: "Profile not found" });
       }
-      res.status(200).json(target);
+ 
+      // Fetch associated cart
+      const userCart = await Cart.findOne({ userId: user._id }).populate('items.productId');
+      const profile = user.toObject();
+      profile.cart = userCart ? userCart.items : [];
+ 
+      res.status(200).json(profile);
     } catch (error) {
       console.error("Fetch Profile Error:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -162,7 +144,8 @@ exports.getProfile = async (req, res) => {
  * Seller Dashboard Summary
  */
 exports.getSellerSummary = async (req, res) => {
-  const { sellerId } = req.query;
+  // Identity securely derived from session, ignoring any query params
+  const sellerId = req.user._id;
 
   try {
     const mongoose = require('mongoose');
@@ -178,7 +161,7 @@ exports.getSellerSummary = async (req, res) => {
     ]);
     const earnings = earningsResult[0]?.total || 0;
 
-    // 3. Orders Count (Unique orders containing products from this seller)
+    // 3. Orders Count
     const ordersCount = await Order.countDocuments({ "items.seller_id": sId });
 
     // 4. Pending Orders Count
@@ -214,7 +197,7 @@ exports.getSellerSummary = async (req, res) => {
       sales: item.sales
     }));
 
-    // 6. Recent Notifications (Fetch real Audit Logs or simple recent activities)
+    // 6. Recent Notifications
     const notifications = [
       `You have ${totalProducts} active products in catalog.`,
       `Lifetime earnings reached ₹${earnings.toLocaleString()}.`,
@@ -248,7 +231,7 @@ exports.getSellerSummary = async (req, res) => {
  */
 exports.getSellerProducts = async (req, res) => {
     try {
-        const { sellerId } = req.params;
+        const sellerId = req.params.seller_id || req.user._id;
         const products = await Product.find({ seller_id: sellerId }).sort({ createdAt: -1 });
         res.status(200).json(products);
     } catch (error) {
@@ -262,7 +245,7 @@ exports.getSellerProducts = async (req, res) => {
  */
 exports.getSellerOrders = async (req, res) => {
     try {
-        const { sellerId } = req.params;
+        const sellerId = req.params.seller_id || req.user._id;
         
         const orders = await Order.find({
             "items.seller_id": sellerId
@@ -271,6 +254,36 @@ exports.getSellerOrders = async (req, res) => {
         res.status(200).json(orders);
     } catch (error) {
         console.error("Fetch Seller Orders Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
+
+/**
+ * Get all active/verified sellers (Admin/Support only)
+ */
+exports.getSellers = async (req, res) => {
+  try {
+    const sellers = await User.find({ role: 'seller', sellerStatus: 'ACTIVE' }).sort({ createdAt: -1 });
+    res.status(200).json(sellers);
+  } catch (error) {
+    console.error("Get Sellers Error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+/**
+ * Get seller profile by email
+ */
+exports.getCurrentSeller = async (req, res) => {
+    try {
+        const { email } = req.params;
+        const seller = await User.findOne({ email, role: 'seller' });
+        if (!seller) {
+            return res.status(404).json({ error: "Seller not found" });
+        }
+        res.status(200).json(seller);
+    } catch (error) {
+        console.error("Get Current Seller Error:", error);
         res.status(500).json({ error: "Internal server error" });
     }
 };

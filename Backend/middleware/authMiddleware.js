@@ -9,19 +9,20 @@ const User = require('../models/User');
 const protect = async (req, res, next) => {
   let token;
 
-    // Check for token in cookie OR authorization header
-    if (req.cookies.token) {
-        token = req.cookies.token;
-    } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
-        token = req.headers.authorization.split(' ')[1];
-    }
+  // Prioritize Authorization header (Bearer token)
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.token) {
+    // Fallback to cookie for legacy support if needed
+    token = req.cookies.token;
+  }
 
-    if (!token) {
-        return res.status(401).json({ 
-            success: false, 
-            message: "Unauthorized. Please login to access this resource." 
-        });
-    }
+  if (!token) {
+    return res.status(401).json({ 
+      success: false, 
+      message: "Unauthorized. Please login." 
+    });
+  }
 
   try {
     // Verify token
@@ -31,13 +32,26 @@ const protect = async (req, res, next) => {
     req.user = await User.findById(decoded.id).select('-password');
     
     if (!req.user) {
-        return res.status(401).json({ error: "User not found" });
+      return res.status(401).json({ 
+        success: false, 
+        message: "User not found or account deactivated." 
+      });
     }
 
     next();
   } catch (error) {
-    console.error("Auth Middleware Error:", error.message);
-    res.status(401).json({ error: "Not authorized, token failed" });
+    if (error.name === 'JsonWebTokenError') {
+        console.error("❌ Auth Signature Error:", error.message);
+    } else if (error.name === 'TokenExpiredError') {
+        console.warn("⏳ Auth Token Expired");
+    } else {
+        console.error("🔒 Auth Middleware Error:", error.message);
+    }
+
+    res.status(401).json({ 
+      success: false, 
+      message: "Session expired or invalid token. Please login again." 
+    });
   }
 };
 

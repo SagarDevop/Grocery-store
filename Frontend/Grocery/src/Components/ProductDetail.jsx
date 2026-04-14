@@ -3,8 +3,7 @@ import "swiper/css/navigation";
 import "swiper/css/pagination";
 import "swiper/css/effect-fade";
 import api from "../api/apiConfig";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { Success, Error } from "../Utils/toastUtils";
+import { useParams, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { addToCart } from "../Redux/cartSlice";
 import { useEffect, useState } from "react";
@@ -28,13 +27,14 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "./ui/Button";
 import { cn } from "../Utils/cn";
+import { Error, Success } from "../Utils/toastUtils";
+
 
 export default function ProductDetail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
-  const { id } = useParams();
   const user = useSelector((state) => state.auth.user);
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [viewers] = useState(Math.floor(Math.random() * 20) + 12);
@@ -62,17 +62,16 @@ export default function ProductDetail() {
   const handleAddToCart = () => {
     if (!user) {
       Error("Please login to add items to cart");
-      navigate("/auth", { state: { from: location } });
+      navigate('/auth', { state: { from: window.location.pathname } });
       return;
     }
     dispatch(addToCart(product));
-    Success(`${product.name} added to cart!`);
   };
 
   const handleBuyNow = () => {
     if (!user) {
       Error("Please login to proceed to checkout");
-      navigate("/auth", { state: { from: location } });
+      navigate('/auth', { state: { from: window.location.pathname } });
       return;
     }
     dispatch(addToCart(product));
@@ -345,24 +344,6 @@ export default function ProductDetail() {
               </div>
            </div>
         </section>
-      </div>
-
-      {/* Mobile Sticky CTA Bar */}
-      <div className="lg:hidden fixed bottom-20 left-0 right-0 z-[55] px-4 animate-in slide-in-from-bottom duration-500">
-        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-slate-800 p-4 rounded-[2rem] shadow-2xl flex items-center gap-4">
-           <div className="flex-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Price</p>
-              <p className="text-xl font-black text-brand-600 dark:text-brand-400 leading-none mt-1">₹{product.price}</p>
-           </div>
-           <div className="flex-[2.5] flex gap-2">
-              <Button size="sm" className="flex-1 h-12 rounded-xl text-xs font-black uppercase tracking-widest" onClick={handleAddToCart}>
-                Add
-              </Button>
-              <Button size="sm" variant="secondary" className="flex-1 h-12 rounded-xl bg-black dark:bg-white text-white dark:text-black border-none text-xs font-black uppercase tracking-widest" onClick={handleBuyNow}>
-                Buy
-              </Button>
-           </div>
-        </div>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React from "react";
 import { ShoppingCart, Heart, Eye } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { addToCart } from "../Redux/cartSlice";
 import { toggleWishlist } from "../Redux/wishlistSlice";
 import { Error, Success } from "../Utils/toastUtils";
@@ -11,7 +11,6 @@ import { cn } from "../Utils/cn";
 
 const ProductCard = ({ product }) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const wishlist = useSelector((state) => state.wishlist.items);
@@ -33,7 +32,7 @@ const ProductCard = ({ product }) => {
     e.stopPropagation();
     if (!user) {
       Error("Please login to add items to cart");
-      navigate("/auth", { state: { from: location } });
+      navigate('/auth', { state: { from: window.location.pathname } });
       return;
     }
     dispatch(addToCart(product));
@@ -74,7 +73,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Action Buttons Overlay */}
-      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300 md:translate-x-4 md:group-hover:translate-x-0">
+      <div className="absolute top-3 right-3 z-10 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">
         <button 
           onClick={handleWishlist}
           className={cn(
@@ -85,6 +84,11 @@ const ProductCard = ({ product }) => {
           )}
         >
           <Heart size={18} className={isInWishlist ? "fill-current" : ""} />
+        </button>
+        <button 
+          className="p-2.5 rounded-full bg-white/90 dark:bg-slate-800/90 border border-slate-100 dark:border-slate-700 text-slate-400 shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-110 hover:text-brand-500"
+        >
+          <Eye size={18} />
         </button>
       </div>
 
@@ -97,10 +101,9 @@ const ProductCard = ({ product }) => {
               : product.image || "/placeholder.png"
           }
           alt={product.name}
-          loading="lazy"
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </div>
 
       {/* Content */}
@@ -124,7 +127,7 @@ const ProductCard = ({ product }) => {
             onClick={handleAddToCart}
             variant="primary"
             size="icon"
-            className="rounded-xl w-10 h-10 shadow-md md:translate-y-2 md:opacity-0 md:group-hover:translate-y-0 md:group-hover:opacity-100 transition-all duration-300"
+            className="rounded-xl w-10 h-10 shadow-md translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
           >
             <ShoppingCart size={18} />
           </Button>

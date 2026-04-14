@@ -1,7 +1,7 @@
 import React from "react";
 import { 
   LayoutDashboard, 
-  Package, 
+  Package as PackageIcon, 
   ShoppingBag, 
   TrendingUp, 
   PlusCircle,
@@ -19,7 +19,7 @@ import { motion } from "framer-motion";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/seller-dashboard" },
-  { icon: Package, label: "My Inventory", path: "/seller-dashboard/sellerproductlist" },
+  { icon: PackageIcon, label: "My Inventory", path: "/seller-dashboard/sellerproductlist" },
   { icon: PlusCircle, label: "Add Product", path: "/seller-dashboard/add-product" },
   { icon: ShoppingBag, label: "Manage Orders", path: "/seller-dashboard/orders" },
   { icon: TrendingUp, label: "Revenue", path: "/seller-dashboard/earnings" },

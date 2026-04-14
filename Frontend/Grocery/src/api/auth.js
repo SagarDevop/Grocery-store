@@ -8,9 +8,9 @@ export const verifyOTP = (data) => api.post(`/verify-otp`, data);
 
 export const googleLogin = (token) => api.post(`/google-login`, { token });
 
-export const fetchAdminStats = () => api.get(`/admin/stats`);
+export const fetchAdminStats = () => api.get(`/api/admin/stats`);
 
-export const fetchAdminActivity = () => api.get(`/admin/activity`);
+export const fetchAdminActivity = () => api.get(`/api/admin/activity`);
 
 export const Allproduct = (params = {}) => api.get(`/api/products`, { params });
 
@@ -25,25 +25,25 @@ export const resetPassword = ({ email, otp, new_password }) =>
   });
 
 export const registerSeller = (data) =>
-  api.post(`/register-seller`, data);
+  api.post(`/api/seller/register-seller`, data);
 
 export const fetchPendingSellers = () =>
-  api.get(`/pending-sellers`);
+  api.get(`/api/seller/pending-sellers`);
 
 export const approveSeller = (id) =>
-  api.post(`/approve-seller/${id}`);
+  api.post(`/api/seller/approve-seller/${id}`);
 
 export const rejectSeller = (id) =>
-  api.delete(`/reject-seller/${id}`);
+  api.delete(`/api/seller/reject-seller/${id}`);
 
 export const fetchSellers = () =>
-  api.get(`/sellers`);
+  api.get(`/api/seller/sellers`);
 
 export const fetchSellerProducts = (sellerId) =>
-  api.get(`/api/seller-products/${sellerId}`);
+  api.get(`/api/seller/products/${sellerId}`);
 
 export const fetchSellerOrders = (sellerId) =>
-  api.get(`/api/seller-orders/${sellerId}`);
+  api.get(`/api/seller/orders/${sellerId}`);
 
 // Wishlist Endpoints
 export const getWishlist = () => api.get(`/api/wishlist`);

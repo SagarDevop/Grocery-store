@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const Seller = require('../models/Seller');
 const Product = require('../models/Product');
-const PendingSeller = require('../models/PendingSeller');
 const Order = require('../models/Order');
 const Transaction = require('../models/Transaction');
 
@@ -11,16 +9,14 @@ const Transaction = require('../models/Transaction');
  */
 exports.getDashboardStats = async (req, res) => {
     try {
-        // [SCALING TIP]: In a massive production env, these would be cached in Redis
         const [totalUsers, totalSellers, totalProducts, pendingRequests, totalOrders] = await Promise.all([
             User.countDocuments(),
-            Seller.countDocuments(),
+            User.countDocuments({ role: 'seller' }),
             Product.countDocuments(),
-            PendingSeller.countDocuments(),
+            User.countDocuments({ sellerStatus: 'PENDING' }),
             Order.countDocuments()
         ]);
 
-        // Calculate real Platform GMV and Net Commission from Transactions
         const financialSummary = await Transaction.aggregate([
             {
                 $group: {
@@ -34,7 +30,6 @@ exports.getDashboardStats = async (req, res) => {
         const platformGMV = financialSummary[0]?.gmv || 0;
         const platformComm = financialSummary[0]?.commission || 0;
 
-        // Fetch Sales Trend (Last 7 Days)
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -50,17 +45,14 @@ exports.getDashboardStats = async (req, res) => {
             { $sort: { "_id": 1 } }
         ]);
 
-        // Format trend for Recharts
         const salesData = salesTrend.map(item => ({
             name: item._id.split('-').slice(1).join('/'), // MM/DD
             gmv: item.gmv,
             commission: item.commission
         }));
 
-        // Dynamic System Health
-        const startTime = Date.now();
-        await mongoose.connection.db.admin().ping();
-        const latency = Date.now() - startTime;
+        // Remove latency check as it requires admin/ping permissions which may be restricted
+        const latency = "N/A";
 
         res.status(200).json({
             stats: [
@@ -96,7 +88,6 @@ exports.getDashboardStats = async (req, res) => {
  */
 exports.getDashboardActivity = async (req, res) => {
     try {
-        // Fetching real recent signups as "activity"
         const recentUsers = await User.find().sort({ createdAt: -1 }).limit(5);
         const recentProducts = await Product.find().sort({ createdAt: -1 }).limit(3);
 
@@ -127,7 +118,7 @@ exports.getDashboardActivity = async (req, res) => {
  */
 exports.getSellers = async (req, res) => {
     try {
-        const sellers = await Seller.find().sort({ createdAt: -1 });
+        const sellers = await User.find({ role: 'seller' }).sort({ createdAt: -1 });
         res.status(200).json(sellers);
     } catch (error) {
         console.error("Fetch Sellers Error:", error);
@@ -140,7 +131,7 @@ exports.getSellers = async (req, res) => {
  */
 exports.getPendingSellers = async (req, res) => {
     try {
-        const pending = await PendingSeller.find();
+        const pending = await User.find({ sellerStatus: 'PENDING' });
         res.status(200).json(pending);
     } catch (error) {
         console.error("Fetch Pending Error:", error);
@@ -153,26 +144,17 @@ exports.getPendingSellers = async (req, res) => {
  */
 exports.approveSeller = async (req, res) => {
     try {
-        const sellerId = req.params.id; // Corrected to use URL params
-        const pending = await PendingSeller.findById(sellerId);
+        const sellerId = req.params.id;
+        const user = await User.findById(sellerId);
 
-        if (!pending) {
-            return res.status(404).json({ error: "Pending seller not found" });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
         }
 
-        // Create the real seller from pending data
-        await Seller.create({
-            name: pending.name,
-            email: pending.email,
-            phone: pending.phone,
-            city: pending.city,
-            store: pending.store,
-            products: pending.products,
-            status: 'ACTIVE'
-        });
-
-        // Delete from pending
-        await PendingSeller.findByIdAndDelete(sellerId);
+        user.role = 'seller';
+        user.sellerStatus = 'ACTIVE';
+        user.sellerApprovedAt = Date.now();
+        await user.save();
 
         res.status(200).json({ message: "Seller approved successfully", id: sellerId });
     } catch (error) {
@@ -186,15 +168,15 @@ exports.approveSeller = async (req, res) => {
  */
 exports.rejectSeller = async (req, res) => {
     try {
-        const sellerId = req.params.id; // Corrected to use URL params
-        const pending = await PendingSeller.findById(sellerId);
+        const sellerId = req.params.id;
+        const user = await User.findById(sellerId);
 
-        if (!pending) {
-            return res.status(404).json({ error: "Pending seller not found" });
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
         }
 
-        // Deleting to keep pending clean
-        await PendingSeller.findByIdAndDelete(sellerId);
+        user.sellerStatus = 'REJECTED';
+        await user.save();
 
         res.status(200).json({ message: "Seller rejected", id: sellerId });
     } catch (error) {

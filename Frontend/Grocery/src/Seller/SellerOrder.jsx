@@ -48,6 +48,7 @@ const StatusBadge = ({ status }) => {
 
 export default function SellerOrder() {
   const { seller } = useOutletContext();
+  const user = useSelector((state) => state.auth.user);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [globalFilter, setGlobalFilter] = useState('');

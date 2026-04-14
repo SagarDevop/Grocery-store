@@ -39,7 +39,7 @@ const CouponSchema = new mongoose.Schema({
   }],
   sellerId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Seller',
+    ref: 'User',
     default: null // null means platform-wide
   },
   isActive: {

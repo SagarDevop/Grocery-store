@@ -27,7 +27,11 @@ const PendingUserSchema = new mongoose.Schema({
     type: Date,
     required: true,
     // Note: We'll also use MongoDB TTL index for auto-deletion
-    expires: 60 // Deleted 60 seconds after otp_expiry if we set this to now
+    expires: 300 // OTP Expired after 5 minutes (300 seconds)
+  },
+  otp_attempts: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 

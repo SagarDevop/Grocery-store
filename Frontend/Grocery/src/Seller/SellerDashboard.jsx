@@ -15,7 +15,7 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { cn } from "../Utils/cn";
-import { Sparkles, TrendingUp, Bell, Calendar, ChevronRight } from "lucide-react";
+import { Sparkles, TrendingUp, Bell, Calendar, ChevronRight, Package } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 
@@ -48,10 +48,10 @@ const SellerDashboard = () => {
     const initDashboard = async () => {
         try {
             setLoading(true);
-            const sellerRes = await api.get(`/api/current-seller/${user.email}`);
+            const sellerRes = await api.get(`/api/seller/current-seller/${user.email}`);
             setSeller(sellerRes.data);
 
-            const summaryRes = await api.get(`/api/seller-dashboard-summary?sellerId=${sellerRes.data._id}`);
+            const summaryRes = await api.get(`/api/seller/dashboard-summary?sellerId=${sellerRes.data._id}`);
             setDashboardData(summaryRes.data);
         } catch (err) {
             console.error("Error initializing dashboard", err);
@@ -140,7 +140,7 @@ const SellerDashboard = () => {
                             </div>
 
                             <div className="h-[400px] w-full">
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={400}>
                                     <AreaChart data={salesTrend}>
                                         <defs>
                                             <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">

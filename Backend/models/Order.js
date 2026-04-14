@@ -17,7 +17,7 @@ const OrderSchema = new mongoose.Schema({
   items: [
     {
       product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-      seller_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Seller' },
+      seller_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
       name: String,
       price: Number,
       quantity: Number,

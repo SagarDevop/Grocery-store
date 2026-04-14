@@ -32,10 +32,10 @@ const handleSubmit = async (e) => {
     await registerSeller(formData);
 
     // Step 2: Notify admin
-    await api.post("/notify-new-seller", {
-      seller_email: formData.email,
-      seller_name: formData.name,
-      store_name: formData.store,
+    await api.post("/api/seller/notify-new-seller", {
+      email: formData.email,
+      name: formData.name,
+      store: formData.store,
     });
 
     confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });

@@ -15,7 +15,7 @@ const cache = (duration) => {
     // 2. Skip if Redis is not initialized or not ready
     // Status check prevents hanging on 'connecting' state
     if (!redis || redis.status !== 'ready') {
-      console.warn('⚠️ Cache skipped: Redis not ready (status: ' + (redis?.status || 'missing') + ')');
+      // console.warn('⚠️ Cache skipped: Redis not ready (status: ' + (redis?.status || 'missing') + ')');
       return next();
     }
 

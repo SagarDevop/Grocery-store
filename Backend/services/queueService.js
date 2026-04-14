@@ -5,9 +5,15 @@ const Cart = require('../models/Cart');
 
 // 1. Email Queue
 const emailQueue = new Queue('email-notifications', process.env.REDIS_URL || 'redis://localhost:6379');
+emailQueue.on('error', (err) => {
+    // console.error('📧 Email Queue Redis Error:', err.message); // Silenced to reduce noise
+});
 
 // 2. Report Queue
 const reportQueue = new Queue('reports', process.env.REDIS_URL || 'redis://localhost:6379');
+reportQueue.on('error', (err) => {
+    // console.error('📊 Report Queue Redis Error:', err.message); // Silenced to reduce noise
+});
 
 // Email Worker
 emailQueue.process(async (job) => {

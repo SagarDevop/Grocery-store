@@ -20,14 +20,15 @@ const auditLogger = require('../middleware/auditLogger');
  * Reusing authorize('admin') where applicable, but fits the existing core structure.
  */
 // Dashboard Stats & Activity (Frontend expects /admin prefix)
-router.get('/admin/stats', protect, adminOnly, getDashboardStats);
-router.get('/admin/activity', protect, adminOnly, getDashboardActivity);
+// Dashboard Stats & Activity
+router.get('/stats', protect, adminOnly, getDashboardStats);
+router.get('/activity', protect, adminOnly, getDashboardActivity);
 
 // Seller Management (Pending & Active Lists)
 router.get('/pending-sellers', protect, adminOnly, getPendingSellers);
 router.get('/sellers', protect, adminOnly, getSellers);
 
-// Seller Management Actions (Audited & Parameterized as per api/auth.js)
+// Seller Management Actions
 router.post('/approve-seller/:id', protect, adminOnly, auditLogger('APPROVE_SELLER', 'SELLER'), approveSeller);
 router.delete('/reject-seller/:id', protect, adminOnly, auditLogger('REJECT_SELLER', 'SELLER'), rejectSeller);
 

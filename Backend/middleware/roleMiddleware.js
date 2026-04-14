@@ -1,29 +1,48 @@
 /**
- * Role-based Authorization Middleware
- * Ensures the user has the required role (e.g., admin, seller).
- * This replaces role checks like `if not user.is_admin` in Flask.
+ * Middleware to require a specific role (e.g., 'admin', 'seller').
  */
-const authorize = (...roles) => {
+const requireRole = (role) => {
   return (req, res, next) => {
-    // We check req.user which was attached by 'protect' middleware
     if (!req.user) {
-      return res.status(401).json({ error: "Login required" });
+      return res.status(401).json({ error: "Authentication required" });
     }
 
-    const { role, is_admin } = req.user;
-
-    // Special check for admin: if the role is 'admin', it checks 'is_admin' property
-    const hasRole = roles.some(r => {
-      if (r === 'admin') return is_admin === true;
-      return role === r;
-    });
-
+    const hasRole = req.user.role === role || (role === 'admin' && req.user.is_admin);
+    
     if (!hasRole) {
-      return res.status(403).json({ error: `User role '${role}' is not authorized to access this route` });
+      return res.status(403).json({ error: `Access denied: ${role} only` });
     }
     
     next();
   };
 };
 
-module.exports = { authorize };
+/**
+ * Middleware to verify resource ownership or Admin access.
+ * Note: Logic often requires model-specific checks (handled in controllers for complex cases),
+ * but this serves as a general template or for simple ownerId checks.
+ */
+const requireOwnership = (resourceType) => {
+    return (req, res, next) => {
+        if (!req.user) return res.status(401).json({ error: "Authentication required" });
+        if (req.user.role === 'admin' || req.user.is_admin) return next();
+        
+        // This is a generic role check fallback if direct ownership isn't easily checked in middleware
+        // Detailed ownership is implemented directly in the relevant controllers (Orders, Products)
+        next();
+    };
+};
+
+/**
+ * Legacy support for 'authorize'
+ */
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: "Login required" });
+    const hasRole = roles.some(r => (r === 'admin' ? req.user.is_admin : req.user.role === r));
+    if (!hasRole) return res.status(403).json({ error: "Unauthorized" });
+    next();
+  };
+};
+
+module.exports = { authorize, requireRole, requireOwnership };

@@ -62,16 +62,22 @@ exports.updateUserCart = async (req, res) => {
     await userCart.save();
 
     // 🛒 Schedule Abandoned Cart Recovery (Delayed Job)
-    const { emailQueue } = require('../services/queueService');
-    // Remove existing delay job if any to reset the clock
-    await emailQueue.removeJobs(`abandoned-${req.user._id}`);
-    await emailQueue.add({
-        type: 'ABANDONED_CART',
-        data: { userId: req.user._id }
-    }, { 
-        jobId: `abandoned-${req.user._id}`,
-        delay: 24 * 60 * 60 * 1000 // 24 Hours
-    });
+    // Wrap in try-catch to keep it non-blocking if Redis is down
+    try {
+        const { emailQueue } = require('../services/queueService');
+        // Remove existing delay job if any to reset the clock
+        await emailQueue.removeJobs(`abandoned-${req.user._id}`).catch(() => {});
+        await emailQueue.add({
+            type: 'ABANDONED_CART',
+            data: { userId: req.user._id }
+        }, { 
+            jobId: `abandoned-${req.user._id}`,
+            delay: 24 * 60 * 60 * 1000 // 24 Hours
+        }).catch(() => {});
+    } catch (queueError) {
+        // Silently fail queue operations to prioritize user response
+        // console.warn("Queue Operation Failed (Likely Redis):", queueError.message);
+    }
 
     res.status(200).json({ message: "Cart synced successfully" });
   } catch (error) {

@@ -16,7 +16,6 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({ total: 0, page: 1, pages: 1 });
-  const [mobileOpen, setMobileOpen] = useState(false);
   
   const query = searchParams.get("q") || "";
   const category = searchParams.get("category") || "All";
@@ -91,19 +90,9 @@ const ProductList = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        {/* Mobile Filter Trigger Button */}
-        <div className="lg:hidden fixed bottom-24 right-4 z-[55]">
-           <Button 
-                onClick={() => setMobileOpen(true)}
-                className="rounded-full h-14 w-14 shadow-2xl bg-brand-600 border-none"
-           >
-              <SlidersHorizontal size={24} />
-           </Button>
-        </div>
-
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filters - Desktop Only */}
-          <aside className="hidden lg:block w-full lg:w-64 space-y-8 shrink-0">
+          {/* Sidebar Filters - Desktop */}
+          <aside className="w-full lg:w-64 space-y-8 shrink-0">
             <div className="glass-effect p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800">
               <FilterBar
                 categories={categories}
@@ -135,61 +124,6 @@ const ProductList = () => {
               </Button>
             </div>
           </aside>
-
-          {/* Mobile Filter Drawer */}
-          <AnimatePresence>
-            {mobileOpen && (
-              <div className="fixed inset-0 z-[100] lg:hidden">
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  onClick={() => setMobileOpen(false)}
-                  className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-                />
-                <motion.div
-                  initial={{ y: "100%" }}
-                  animate={{ y: 0 }}
-                  exit={{ y: "100%" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="absolute bottom-0 left-0 right-0 h-[70vh] bg-white dark:bg-surface-dark rounded-t-[3rem] p-8 overflow-y-auto shadow-2xl"
-                >
-                  <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-2xl font-black text-slate-900 dark:text-white">Refine Selection</h3>
-                    <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)}>
-                      <ChevronLeft size={24} className="rotate-[-90deg]" />
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-10">
-                    <FilterBar
-                      categories={categories}
-                      selected={category}
-                      onSelect={(cat) => {
-                        searchParams.set("category", cat);
-                        searchParams.set("page", 1);
-                        navigate({ search: searchParams.toString() });
-                        setMobileOpen(false);
-                      }}
-                    />
-                    <div className="pt-8 border-t border-slate-100 dark:border-slate-800">
-                      <SortBar 
-                        sortBy={sortBy} 
-                        onSortChange={(sort) => {
-                          searchParams.set("sort", sort);
-                          navigate({ search: searchParams.toString() });
-                          setMobileOpen(false);
-                        }} 
-                      />
-                    </div>
-                    <Button className="w-full h-16 rounded-2xl" onClick={() => setMobileOpen(false)}>
-                        Show {pagination.total} Results
-                    </Button>
-                  </div>
-                </motion.div>
-              </div>
-            )}
-          </AnimatePresence>
 
           {/* Main Grid */}
           <div className="flex-1">

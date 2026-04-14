@@ -97,3 +97,19 @@ exports.changePassword = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 };
+/**
+ * Get profile by email (used for refresh)
+ */
+exports.getProfileByEmail = async (req, res) => {
+    try {
+        const { email } = req.params;
+        const user = await User.findOne({ email }).select('-password');
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.status(200).json(user);
+    } catch (error) {
+        console.error("Fetch Profile By Email Error:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};

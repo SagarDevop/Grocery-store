@@ -1,6 +1,6 @@
 const Review = require('../models/Review');
 const Product = require('../models/Product');
-const Seller = require('../models/Seller');
+const User = require('../models/User');
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
 
@@ -61,11 +61,11 @@ exports.addReview = async (req, res) => {
             await product.save({ session });
 
             // 6. Update Seller Rating (Aggregation of all their product ratings or simple avg)
-            const seller = await Seller.findById(product.seller_id);
+            const seller = await User.findById(product.seller_id);
             if (seller) {
                 const oldSellerAvg = seller.sellerRating || 0;
-                const totalSellerSales = seller.totalSales || 0; 
-                // Using totalSales as a weight for simplicity, or we could aggregate all reviews
+                const totalSellerSales = seller.totalSellerSales || 0; 
+                // Using totalSellerSales as a weight for simplicity, or we could aggregate all reviews
                 seller.sellerRating = ((oldSellerAvg * oldTotal) + rating) / newTotal; // Simplified logic
                 await seller.save({ session });
             }

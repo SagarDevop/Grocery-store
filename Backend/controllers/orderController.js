@@ -45,7 +45,7 @@ exports.getSellerOrders = async (req, res) => {
 };
 
 /**
- * Update Order Status
+ * Update Order Status (Seller or Admin only)
  */
 exports.updateOrderStatus = async (req, res) => {
     try {
@@ -55,20 +55,44 @@ exports.updateOrderStatus = async (req, res) => {
         const order = await Order.findById(id).populate('user_id', 'email name');
         if (!order) return res.status(404).json({ error: "Order not found" });
 
+        // --- OWNERSHIP VALIDATION ---
+        const isAdmin = req.user.role === 'admin' || req.user.is_admin;
+        const isSeller = req.user.role === 'seller';
+        
+        if (!isAdmin) {
+            if (!isSeller) {
+                return res.status(403).json({ error: "Access denied: Buyers cannot update order status" });
+            }
+            
+            // Check if this seller owns any item in this order
+            const sellerOwnsAnItem = order.items.some(item => 
+                item.seller_id.toString() === req.user._id.toString()
+            );
+
+            if (!sellerOwnsAnItem) {
+                return res.status(403).json({ error: "Access denied: You do not own any products in this order" });
+            }
+        }
+        // --- END VALIDATION ---
+
         order.status = status;
         order.timeline.push({ status, comment });
         await order.save();
 
         // Trigger Notification in Background
         if (order.user_id && order.user_id.email) {
-            emailQueue.add({
-                type: 'STATUS_UPDATE',
-                data: {
-                    email: order.user_id.email,
-                    orderId: order._id,
-                    status: status
-                }
-            });
+            try {
+                emailQueue.add({
+                    type: 'STATUS_UPDATE',
+                    data: {
+                        email: order.user_id.email,
+                        orderId: order._id,
+                        status: status
+                    }
+                }).catch(() => {});
+            } catch (err) {
+                // console.error("Post-Status Queue Error:", err);
+            }
         }
 
         res.status(200).json({ message: "Order status updated", order });
@@ -205,8 +229,10 @@ exports.checkout = async (req, res) => {
         await cart.save({ session });
 
         // 🛒 Cancel Abandoned Cart Recovery Job
-        const { emailQueue } = require('../services/queueService');
-        await emailQueue.removeJobs(`abandoned-${req.user._id}`);
+        try {
+            const { emailQueue } = require('../services/queueService');
+            await emailQueue.removeJobs(`abandoned-${req.user._id}`).catch(() => {});
+        } catch (err) {}
 
         await session.commitTransaction();
         session.endSession();
@@ -221,10 +247,10 @@ exports.checkout = async (req, res) => {
                         email: user.email,
                         order: newOrder
                     }
-                });
+                }).catch(() => {});
             }
         } catch (emailErr) {
-            console.error("Queue Addition Error:", emailErr);
+            // console.error("Queue Addition Error:", emailErr);
         }
 
         res.status(201).json({ message: "Order placed successfully", order_id: newOrder._id });

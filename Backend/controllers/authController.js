@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const validator = require('validator');
 const User = require('../models/User');
 const PendingUser = require('../models/PendingUser');
-const Seller = require('../models/Seller');
 const generateOTP = require('../utils/generateOTP');
 const { sendOtpEmailSignup, sendOtpEmailForgotPassword } = require('../services/emailService');
 const admin = require('../config/firebase-admin');
@@ -33,7 +32,6 @@ exports.signup = async (req, res) => {
     // Check if verification already in progress
     const existingPending = await PendingUser.findOne({ email });
     if (existingPending) {
-      // Check if expired (Flask logic: datetime.utcnow() > existing_pending["otp_expiry"])
       if (new Date() > existingPending.otp_expiry) {
         await PendingUser.deleteOne({ email });
       } else {
@@ -41,23 +39,24 @@ exports.signup = async (req, res) => {
       }
     }
 
-    // Generate OTP and Hash password
+    // Generate OTP and Hash password/OTP
     const otp = generateOTP();
+    const hashedOtp = await bcrypt.hash(otp, 10);
     const hashedPassword = await bcrypt.hash(password, 10);
-    const otpExpiry = new Date(Date.now() + 1 * 60000); // 1 minute
+    const otpExpiry = new Date(Date.now() + 5 * 60000); // Increased to 5 minutes for better UX
 
-    // Send OTP via Brevo
+    // Send OTP via Brevo (Send PLATIN OTP, not hashed)
     const emailSent = await sendOtpEmailSignup(email, otp);
     if (!emailSent) {
       return res.status(500).json({ error: "Failed to send OTP email" });
     }
 
-    // Create entry in PendingUser
+    // Create entry in PendingUser with hashed OTP
     await PendingUser.create({
       name,
       email,
       password: hashedPassword,
-      otp,
+      otp: hashedOtp,
       otp_expiry: otpExpiry
     });
 
@@ -85,8 +84,17 @@ exports.verifyOTP = async (req, res) => {
       return res.status(400).json({ error: "OTP expired. Please sign up again." });
     }
 
-    if (pending.otp !== otp) {
-      return res.status(400).json({ error: "Invalid OTP" });
+    const isOtpValid = await bcrypt.compare(otp, pending.otp);
+    if (!isOtpValid) {
+      pending.otp_attempts += 1;
+      await pending.save();
+
+      if (pending.otp_attempts >= 5) {
+        await PendingUser.deleteOne({ email });
+        return res.status(403).json({ error: "Too many failed attempts. Your registration has been cleared. Please sign up again." });
+      }
+
+      return res.status(400).json({ error: `Invalid OTP. ${5 - pending.otp_attempts} attempts remaining.` });
     }
 
     // Create active user
@@ -129,37 +137,28 @@ exports.login = async (req, res) => {
   }
 
   try {
-    // Check in Users and Sellers (Flask checks both)
     const user = await User.findOne({ email });
-    const seller = await Seller.findOne({ email });
 
-    const target = user || seller;
-
-    if (!target) {
+    if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
 
     // Validate password
-    if (!target.password) {
+    if (!user.password) {
       return res.status(401).json({ error: "Email registered via Google. Please use Google Login." });
     }
 
-    const isMatch = await bcrypt.compare(password, target.password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
-    // Check verification (Flask: if not user.get("is_verified", False))
-    // Note: Sellers in the Flask app seemed to imply they are verified if they exist in sellers_collection
-    if (user && !user.is_verified) {
+    if (!user.is_verified) {
         return res.status(403).json({ error: "Please verify your account first." });
     }
 
-    // Determine role (Flask logic: role = "seller" if seller else "user")
-    const role = seller ? "seller" : (user.is_admin ? "admin" : "user");
-
     // Generate JWT
-    const token = jwt.sign({ id: target._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     // Set JWT in cookie
     res.cookie('token', token, {
@@ -170,12 +169,13 @@ exports.login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
+      token,
       user: {
-        _id: target._id,
-        name: target.name,
-        email: target.email,
-        is_admin: user ? user.is_admin : false,
-        role: role
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        is_admin: user.is_admin || false,
+        role: user.role
       }
     });
   } catch (error) {
@@ -197,9 +197,10 @@ exports.forgotPassword = async (req, res) => {
     }
 
     const otp = generateOTP();
-    const expiry = new Date(Date.now() + 1 * 60000); // 1 minute
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiry = new Date(Date.now() + 5 * 60000); // 5 minutes
 
-    user.reset_otp = otp;
+    user.reset_otp = hashedOtp;
     user.reset_otp_expiry = expiry;
     await user.save();
 
@@ -222,8 +223,28 @@ exports.resetPassword = async (req, res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user || user.reset_otp !== otp) {
-      return res.status(400).json({ error: "Invalid OTP" });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (!user.reset_otp) {
+        return res.status(400).json({ error: "No reset request pending" });
+    }
+
+    const isOtpValid = await bcrypt.compare(otp, user.reset_otp);
+    if (!isOtpValid) {
+      user.reset_otp_attempts += 1;
+      await user.save();
+
+      if (user.reset_otp_attempts >= 5) {
+        user.reset_otp = undefined;
+        user.reset_otp_expiry = undefined;
+        user.reset_otp_attempts = 0;
+        await user.save();
+        return res.status(403).json({ error: "Too many failed attempts. This OTP has been invalidated. Please request a new one." });
+      }
+
+      return res.status(400).json({ error: `Invalid OTP. ${5 - user.reset_otp_attempts} attempts remaining.` });
     }
 
     if (new Date() > user.reset_otp_expiry) {
@@ -233,6 +254,7 @@ exports.resetPassword = async (req, res) => {
     user.password = await bcrypt.hash(new_password, 10);
     user.reset_otp = undefined;
     user.reset_otp_expiry = undefined;
+    user.reset_otp_attempts = 0;
     await user.save();
 
     res.status(200).json({ message: "Password reset successful" });
@@ -244,10 +266,6 @@ exports.resetPassword = async (req, res) => {
 
 /**
  * Handle Google Login (Firebase)
- * 1. Verifies the ID Token from frontend
- * 2. Checks if user exists in MongoDB
- * 3. Creates new user or link existing one
- * 4. Issues JWT cookie
  */
 exports.googleLogin = async (req, res) => {
     const { token: idToken } = req.body;
@@ -257,8 +275,6 @@ exports.googleLogin = async (req, res) => {
     }
 
     try {
-        // 1. Verify Firebase ID Token
-        // NOTE: This will fail if FIREBASE_PROJECT_ID, etc. are not set correctly in .env
         let decodedToken;
         try {
             decodedToken = await admin.auth().verifyIdToken(idToken);
@@ -269,66 +285,50 @@ exports.googleLogin = async (req, res) => {
 
         const { email, name, picture, uid } = decodedToken;
 
-        // 2. Check if user exists in MongoDB
-        // We prioritizing checking by Google ID, then Email
         let user = await User.findOne({ 
             $or: [ { googleId: uid }, { email: email } ] 
         });
 
         if (!user) {
-            // Check if they are a seller (Flask logic: roles match sellers_collection)
-            const seller = await Seller.findOne({ email });
-            if (seller) {
-                // If they are a seller, link their Google ID if not already there
-                if (!seller.googleId) {
-                    seller.googleId = uid;
-                    await seller.save();
-                }
-                user = seller;
-            } else {
-                // Create new basic user
-                console.log(`🆕 Creating new Google user: ${email}`);
-                user = await User.create({
-                    name: name || "Google User",
-                    email: email,
-                    googleId: uid,
-                    profileImage: picture,
-                    is_verified: true, // Google users are pre-verified
-                    role: "user",
-                    cart: []
-                });
-            }
+            console.log(`🆕 Creating new Google user: ${email}`);
+            user = await User.create({
+                name: name || "Google User",
+                email: email,
+                googleId: uid,
+                profileImage: picture,
+                is_verified: true,
+                role: "user",
+                cart: []
+            });
         } else {
-            // Update existing user/seller with Google info if missing
             if (!user.googleId) user.googleId = uid;
             if (!user.profileImage) user.profileImage = picture;
             await user.save();
         }
 
-        // 3. Issue JWT Token (same as normal login)
-        const role = user.role || (user.is_admin ? "admin" : "user");
         const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
         res.cookie('token', jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: 24 * 60 * 60 * 1000
-        });
-
-        res.status(200).json({
-            message: "Google login successful",
-            user: {
-                _id: user._id,
-                name: user.name,
-                email: user.email,
-                is_admin: user.is_admin || false,
-                role: role,
-                profileImage: user.profileImage
-            }
-        });
-
-    } catch (error) {
-        console.error("Google Login Controller Error:", error);
-        res.status(500).json({ error: "Authentication failed" });
-    }
-};
+          });
+  
+          res.status(200).json({
+              message: "Google login successful",
+              token: jwtToken,
+              user: {
+                  _id: user._id,
+                  name: user.name,
+                  email: user.email,
+                  is_admin: user.is_admin || false,
+                  role: user.role,
+                  profileImage: user.profileImage
+              }
+          });
+  
+      } catch (error) {
+          console.error("Google Login Controller Error:", error);
+          res.status(500).json({ error: "Authentication failed" });
+      }
+  };

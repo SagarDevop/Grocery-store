@@ -1,5 +1,5 @@
 const Product = require('../models/Product');
-const Seller = require('../models/Seller');
+const User = require('../models/User');
 const mongoose = require('mongoose');
 
 /**
@@ -55,14 +55,22 @@ exports.getProductById = async (req, res) => {
 
     const seller = product.seller_id;
     const formattedProduct = {
-      ...product._doc,
       _id: product._id.toString(),
-      seller_id: product.seller_id._id.toString(),
+      name: product.name,
+      price: product.price,
+      images: product.images,
+      category: product.category,
+      stock: product.stock,
+      amount: product.amount,
+      unit: product.unit,
+      description: product.description,
+      averageRating: product.averageRating,
+      totalReviews: product.totalReviews,
       seller: seller ? {
         name: seller.name,
-        phone: seller.phone,
-        email: seller.email,
-        store: seller.store,
+        store: seller.storeName,
+        city: seller.storeCity,
+        rating: seller.sellerRating
       } : null
     };
 
@@ -82,9 +90,16 @@ exports.getProductsByCategory = async (req, res) => {
     const products = await Product.find({ category: category_name });
     
     const formattedProducts = products.map(p => ({
-      ...p._doc,
       _id: p._id.toString(),
-      seller_id: p.seller_id.toString()
+      name: p.name,
+      price: p.price,
+      images: p.images,
+      category: p.category,
+      stock: p.stock,
+      amount: p.amount,
+      unit: p.unit,
+      averageRating: p.averageRating,
+      totalReviews: p.totalReviews
     }));
 
     res.status(200).json(formattedProducts);
@@ -171,7 +186,8 @@ exports.getPopularProducts = async (req, res) => {
     ]);
 
     const productIds = popularData.map(item => item._id);
-    const products = await Product.find({ _id: { $in: productIds } });
+    const products = await Product.find({ _id: { $in: productIds } })
+      .select('name price images category stock amount unit averageRating totalReviews');
 
     res.status(200).json(products);
   } catch (error) {

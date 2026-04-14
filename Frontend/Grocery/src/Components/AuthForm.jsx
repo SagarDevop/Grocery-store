@@ -5,12 +5,11 @@ import { signInWithPopup } from "firebase/auth";
 import { useDispatch, useSelector } from "react-redux";
 import { loginUser } from "../Redux/authSlice";
 import { Success, Error } from "../Utils/toastUtils.js";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const AuthForm = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const location = useLocation();
   const user = useSelector((state) => state.auth.user); 
 
   const [mode, setMode] = useState("login");
@@ -31,18 +30,16 @@ const AuthForm = () => {
     if (loading) return;
     setLoading(true);
 
-    const from = location.state?.from?.pathname || "/";
-
     try {
       if (awaitingOTP) {
         const res = await verifyOTP({ email: formData.email, otp: formData.otp });
         Success(res.data.message);
 
         const loginRes = await login({ email: formData.email, password: formData.password });
-        dispatch(loginUser(loginRes.data.user));
+        dispatch(loginUser({ user: loginRes.data.user, token: loginRes.data.token }));
 
         setAwaitingOTP(false);
-        navigate(from);
+        navigate("/");
       } else if (mode === "signup") {
         const res = await signup(formData);
         setMessage(res.data.message);
@@ -50,14 +47,13 @@ const AuthForm = () => {
         setAwaitingOTP(true);
       } else if (mode === "login") {
         const res = await login(formData);
-        dispatch(loginUser(res.data.user));
+        dispatch(loginUser({ user: res.data.user, token: res.data.token }));
         Success(`Welcome back, ${res.data.user.name}!`);
 
         if (res.data.user.is_admin) navigate("/admin-dashboard");
         else if (res.data.user.role === "seller") navigate("/seller-dashboard");
-        else navigate(from);
+        else navigate("/");
       } else if (mode === "forgot") {
-        // ... (existing forgot logic remains same)
         if (!forgotOTPStage) {
           const res = await forgotPassword(formData.email);
           Success(res.data.message);
@@ -93,7 +89,6 @@ const AuthForm = () => {
   const handleGoogleLogin = async () => {
     if (loading) return;
     setLoading(true);
-    const from = location.state?.from?.pathname || "/";
     try {
       // 1. Firebase Popup
       const result = await signInWithPopup(auth, googleProvider);
@@ -103,13 +98,13 @@ const AuthForm = () => {
       const res = await googleLogin(idToken);
       
       // 3. Update Redux
-      dispatch(loginUser(res.data.user));
+      dispatch(loginUser({ user: res.data.user, token: res.data.token }));
       Success(`Login Successful! Welcome, ${res.data.user.name}`);
 
-      // 4. Redirect based on role or 'from'
+      // 4. Redirect based on role
       if (res.data.user.is_admin) navigate("/admin-dashboard");
       else if (res.data.user.role === "seller") navigate("/seller-dashboard");
-      else navigate(from);
+      else navigate("/");
 
     } catch (err) {
       console.error("Google Auth Error:", err);
