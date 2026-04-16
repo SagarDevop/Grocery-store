@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 
 // Lazy load components for performance
 const Home = lazy(() => import('./Components/Home'));
@@ -44,12 +44,36 @@ function App() {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.auth.user);
   const cartItems = useSelector((state) => state.cart.items);
+  const location = useLocation();
+
+  const isDashboard = location.pathname.startsWith('/admin-dashboard') || location.pathname.startsWith('/seller-dashboard');
+
+  // Listen for global session expiration events (from apiConfig)
+  useEffect(() => {
+    const handleLogout = () => {
+      console.warn("Session expired signal received. Logging out.");
+      dispatch(logoutUser());
+    };
+    window.addEventListener('session-expired', handleLogout);
+    return () => window.removeEventListener('session-expired', handleLogout);
+  }, [dispatch]);
 
   // Initial Load & Auth Sync
   useEffect(() => {
+    // 1. Session Sanity Check
+    // If we have a user in state but no token in storage, the interceptor likely cleared it.
+    // We must sync Redux state immediately to prevent a request loop.
+    const token = localStorage.getItem('token');
+    if (user?._id && !token) {
+      console.warn("Session Mismatch: User present but Token missing. Logging out.");
+      dispatch(logoutUser());
+      return;
+    }
+
+    // 2. Refresh Sync
     if (user?._id) {
-      console.log("Persistence Sync: Refreshing profile for:", user.email);
-      dispatch(refreshUserProfile(user.email));
+      console.log("Persistence Sync: Refreshing session for:", user.email);
+      dispatch(refreshUserProfile());
       dispatch(fetchCart(user.email));  
       dispatch(fetchWishlist()); 
     } else if (!user) {
@@ -71,7 +95,7 @@ function App() {
   return (
     <>
       <Toaster position="top-centre" reverseOrder={false} />
-      <Navbar />
+      {!isDashboard && <Navbar />}
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Home />} />

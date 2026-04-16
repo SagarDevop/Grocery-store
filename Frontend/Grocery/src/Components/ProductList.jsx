@@ -92,7 +92,7 @@ const ProductList = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters - Desktop */}
-          <aside className="w-full lg:w-64 space-y-8 shrink-0">
+          <aside className="w-full lg:w-64 space-y-8 shrink-0 lg:sticky lg:top-24 lg:self-start">
             <div className="glass-effect p-6 rounded-[2rem] border border-slate-200 dark:border-slate-800">
               <FilterBar
                 categories={categories}
@@ -128,7 +128,7 @@ const ProductList = () => {
           {/* Main Grid */}
           <div className="flex-1">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xl:gap-6">
                 {[...Array(6)].map((_, i) => (
                   <div key={i} className="space-y-4">
                     <div className="aspect-[4/5] bg-white dark:bg-surface-dark-gray border border-slate-100 dark:border-slate-800 rounded-[2rem] animate-pulse" />
@@ -153,7 +153,7 @@ const ProductList = () => {
               </motion.div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 xl:gap-6">
                   {products.map((prod) => (
                     <ProductCard key={prod._id} product={prod} />
                   ))}

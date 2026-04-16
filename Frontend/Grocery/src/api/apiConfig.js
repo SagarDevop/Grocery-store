@@ -46,9 +46,11 @@ api.interceptors.response.use(
   (error) => {
     // If we get a 401 Unauthorized, it means the token is invalid/expired
     if (error.response && error.response.status === 401) {
-      console.warn("🔐 Session expired or invalid signature. Clearing token.");
+      console.warn("🔐 Session expired or invalid signature. Clearing local session state.");
       localStorage.removeItem('token');
-      // Note: We don't force a redirect here to allow components to handle their own error states
+      localStorage.removeItem('user');
+      // Broadcast a global signal so the App can clear Redux memory state
+      window.dispatchEvent(new Event('session-expired'));
     }
     return Promise.reject(error);
   }

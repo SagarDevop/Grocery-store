@@ -15,7 +15,7 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { cn } from "../Utils/cn";
-import { Sparkles, TrendingUp, Bell, Calendar, ChevronRight, Package } from "lucide-react";
+import { Sparkles, TrendingUp, Bell, Calendar, ChevronRight, Box } from "lucide-react";
 import { motion } from "framer-motion";
 import { useTheme } from "../context/ThemeContext";
 
@@ -200,7 +200,7 @@ const SellerDashboard = () => {
                               <div className="space-y-6 relative z-10">
                                   {[
                                     { title: "Trending Item", desc: "\"Fresh Avocados\" is surging! +20% demand this week.", icon: <TrendingUp size={16}/> },
-                                    { title: "Stock Alert", desc: "5 products are below safety threshold of 10 items.", icon: <Package size={16}/> },
+                                    { title: "Stock Alert", desc: "5 products are below safety threshold of 10 items.", icon: <Box size={16}/> },
                                     { title: "New Feature", desc: "You can now export monthly tax invoices directly.", icon: <Sparkles size={16}/> }
                                   ].map((insight, i) => (
                                     <div key={i} className="group p-4 bg-white/10 rounded-2xl backdrop-blur-md border border-white/10 hover:bg-white/15 transition-all">

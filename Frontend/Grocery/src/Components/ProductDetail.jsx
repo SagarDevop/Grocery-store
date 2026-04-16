@@ -92,10 +92,10 @@ export default function ProductDetail() {
   const images = product.images?.length > 0 ? product.images : [product.image];
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-surface-dark py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-surface-dark py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Breadcrumbs */}
-        <nav className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 mb-8">
+        <nav className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400 mb-4">
            <span className="hover:text-brand-500 cursor-pointer transition-colors" onClick={() => navigate('/')}>Home</span>
            <ChevronRight size={14} />
            <span className="hover:text-brand-500 cursor-pointer transition-colors" onClick={() => navigate('/products')}>Products</span>
@@ -103,14 +103,14 @@ export default function ProductDetail() {
            <span className="text-slate-900 dark:text-slate-200 font-bold truncate">{product.name}</span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
           
-          {/* Left: Media Gallery (5 cols) */}
-          <div className="lg:col-span-6 space-y-6">
+          {/* Left: Media Gallery (4 cols) */}
+          <div className="lg:col-span-4 space-y-4">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative aspect-square rounded-[3rem] bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 overflow-hidden shadow-2xl shadow-slate-200/50 dark:shadow-none"
+              className="relative aspect-square rounded-[2rem] bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 overflow-hidden shadow-xl"
             >
               <Swiper
                 modules={[Navigation, Pagination, EffectFade]}
@@ -125,7 +125,7 @@ export default function ProductDetail() {
                     <img
                       src={img}
                       alt={product.name}
-                      className="w-full h-full object-cover p-12 mix-blend-multiply dark:mix-blend-normal"
+                      className="w-full h-full object-cover p-6 mix-blend-multiply dark:mix-blend-normal"
                     />
                   </SwiperSlide>
                 ))}
@@ -157,8 +157,8 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* Right: Details (7 cols) */}
-          <div className="lg:col-span-6 space-y-10">
+          {/* Right: Details (8 cols) */}
+          <div className="lg:col-span-8 space-y-6">
             <div className="space-y-4">
                <div className="flex items-center justify-between">
                  <span className="px-4 py-1.5 rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/20 dark:text-brand-400 text-xs font-black uppercase tracking-widest">
@@ -170,7 +170,7 @@ export default function ProductDetail() {
                  </div>
                </div>
                
-               <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1]">
+               <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                  {product.name}
                </h1>
                
@@ -186,28 +186,28 @@ export default function ProductDetail() {
             </div>
 
             {/* Price section */}
-            <div className="p-8 rounded-[3rem] bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-premium">
-               <div className="flex items-end gap-3 mb-8">
-                  <span className="text-5xl font-black text-brand-600 dark:text-brand-400">₹{product.price}</span>
+            <div className="p-6 rounded-[2rem] bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-premium">
+               <div className="flex items-end gap-3 mb-6">
+                  <span className="text-3xl font-black text-brand-600 dark:text-brand-400">₹{product.price}</span>
                   {product.mrp > product.price && (
-                    <span className="text-xl text-slate-400 line-through font-bold mb-1.5">₹{product.mrp || product.price + 20}</span>
+                    <span className="text-lg text-slate-400 line-through font-bold mb-1">₹{product.mrp || product.price + 20}</span>
                   )}
                   {product.discount && (
-                    <span className="bg-red-500 text-white text-xs font-black px-3 py-1 rounded-lg mb-1.5 shadow-lg shadow-red-500/20">
+                    <span className="bg-red-500 text-white text-xs font-black px-3 py-1 rounded-lg mb-1 shadow-lg shadow-red-500/20">
                       {product.discount}% OFF
                     </span>
                   )}
                </div>
 
-               <div className="grid grid-cols-2 gap-4 mb-10">
-                 <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+               <div className="grid grid-cols-2 gap-4 mb-6">
+                 <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pack Size</p>
-                    <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{product.amount || '500'} {product.unit || 'g'}</p>
+                    <p className="text-base font-bold text-slate-800 dark:text-slate-200">{product.amount || '500'} {product.unit || 'g'}</p>
                  </div>
-                 <div className="p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
+                 <div className="p-4 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Status</p>
                     <p className={cn(
-                      "text-lg font-bold",
+                      "text-base font-bold",
                       product.stock > 10 ? "text-emerald-500" : product.stock > 0 ? "text-orange-500" : "text-red-500"
                     )}>
                       {product.stock > 10 ? 'Available' : product.stock > 0 ? `Only ${product.stock} Left` : 'Out of Stock'}
@@ -218,50 +218,50 @@ export default function ProductDetail() {
                {/* Urgent CTA */}
                {product.stock > 0 && (
                 <div className="flex flex-col sm:flex-row gap-4">
-                  <Button size="lg" className="flex-1 h-16 rounded-2xl group" onClick={handleAddToCart}>
+                  <Button size="lg" className="flex-1 h-14 rounded-2xl group" onClick={handleAddToCart}>
                     Add To Cart
                   </Button>
-                  <Button size="lg" variant="secondary" className="flex-1 h-16 rounded-2xl bg-black dark:bg-white text-white dark:text-black border-none" onClick={handleBuyNow}>
-                    Buy Now <Zap size={18} fill="currentColor" className="ml-2" />
+                  <Button size="lg" variant="secondary" className="flex-1 h-14 rounded-2xl bg-black dark:bg-white text-white dark:text-black border-none" onClick={handleBuyNow}>
+                    Buy Now <Zap size={16} fill="currentColor" className="ml-2" />
                   </Button>
                 </div>
                )}
             </div>
 
             {/* Trust Features */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <div className="flex items-start gap-4 p-5 rounded-3xl bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-sm">
-                  <div className="p-3 bg-brand-50 dark:bg-brand-900/20 text-brand-500 rounded-2xl">
-                    <Truck size={24} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="flex items-start gap-3 p-4 rounded-3xl bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <div className="p-2 bg-brand-50 dark:bg-brand-900/20 text-brand-500 rounded-xl">
+                    <Truck size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-200">Express Delivery</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">Arrives within 30-45 minutes</p>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Express Delivery</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">Arrives within 30-45 minutes</p>
                   </div>
                </div>
-               <div className="flex items-start gap-4 p-5 rounded-3xl bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-sm">
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-2xl">
-                    <RotateCcw size={24} />
+               <div className="flex items-start gap-3 p-4 rounded-3xl bg-white dark:bg-surface-dark-gray border border-slate-200 dark:border-slate-800 shadow-sm">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 text-blue-500 rounded-xl">
+                    <RotateCcw size={20} />
                   </div>
                   <div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-200">Quality Check</h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">100% replacement guarantee</p>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">Quality Check</h4>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">100% replacement guarantee</p>
                   </div>
                </div>
             </div>
 
             {/* High Trust Section */}
-            <div className="p-6 rounded-3xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/50">
-               <div className="flex items-center gap-3 mb-4">
+            <div className="p-5 rounded-3xl bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-800/50">
+               <div className="flex items-center gap-3 mb-3">
                   <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white">
-                    <CheckCircle2 size={20} />
+                    <CheckCircle2 size={18} />
                   </div>
-                  <h4 className="font-bold text-emerald-800 dark:text-emerald-400">GreenCart Verified Freshness</h4>
+                  <h4 className="font-bold text-emerald-800 dark:text-emerald-400 text-sm">GreenCart Verified Freshness</h4>
                </div>
-               <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+               <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {['Strict Quality Control', 'Pesticide Free', 'No Preservatives', 'Farm to Table'].map(item => (
-                    <li key={item} className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-500/80">
-                      <ChevronRight size={14} /> {item}
+                    <li key={item} className="flex items-center gap-2 text-[10px] font-bold text-emerald-700 dark:text-emerald-500/80">
+                      <ChevronRight size={12} /> {item}
                     </li>
                   ))}
                </ul>
@@ -270,7 +270,7 @@ export default function ProductDetail() {
         </div>
 
         {/* Reviews Section Upgrade */}
-        <section className="mt-32 pt-20 border-t border-slate-200 dark:border-slate-800">
+        <section className="mt-12 pt-10 border-t border-slate-200 dark:border-slate-800">
            <div className="flex flex-col lg:flex-row gap-20">
               <div className="lg:w-1/3 space-y-8">
                  <div className="space-y-2">

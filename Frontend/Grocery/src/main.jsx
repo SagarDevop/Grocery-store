@@ -1,4 +1,14 @@
 import { StrictMode } from "react";
+
+// Auto-unregister ghost service workers to clear stale cache
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (let registration of registrations) {
+      registration.unregister();
+    }
+  });
+}
+
 import { createRoot } from "react-dom/client";
 import "./index.css";
 import "swiper/css";

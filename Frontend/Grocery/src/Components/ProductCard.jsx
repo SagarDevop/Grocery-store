@@ -55,7 +55,7 @@ const ProductCard = ({ product }) => {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       whileHover={{ y: -8 }}
-      className="group relative flex flex-col premium-card overflow-hidden bg-white dark:bg-surface-dark-gray"
+      className="group relative flex flex-col premium-card overflow-hidden bg-white dark:bg-surface-dark-gray h-full"
       onClick={showProduct}
     >
       {/* Badge Overlay */}
@@ -93,7 +93,7 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Image Container */}
-      <div className="aspect-[4/5] relative overflow-hidden bg-slate-50 dark:bg-slate-900/50">
+      <div className="aspect-square relative overflow-hidden bg-slate-50 dark:bg-slate-900/50">
         <img
           src={
             product.images && product.images.length > 0
@@ -107,19 +107,19 @@ const ProductCard = ({ product }) => {
       </div>
 
       {/* Content */}
-      <div className="p-4 flex flex-col flex-1">
-        <div className="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1">
+      <div className="p-3 flex flex-col flex-1">
+        <div className="text-[9px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-widest mb-1">
           {product.category}
         </div>
-        <h3 className="font-bold text-slate-800 dark:text-slate-100 line-clamp-2 leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">
+        <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100 line-clamp-2 leading-tight group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors mb-2">
           {product.name}
         </h3>
         
-        <div className="mt-auto flex items-end justify-between gap-2">
+        <div className="mt-auto flex items-center justify-between gap-1">
           <div className="flex flex-col">
-            <span className="text-xl font-black text-slate-900 dark:text-white">₹{product.price}</span>
+            <span className="text-lg font-black text-slate-900 dark:text-white">₹{product.price}</span>
             {product.mrp > product.price && (
-              <span className="text-xs text-slate-400 line-through">₹{product.mrp}</span>
+              <span className="text-[10px] text-slate-400 line-through">₹{product.mrp}</span>
             )}
           </div>
           
@@ -127,9 +127,9 @@ const ProductCard = ({ product }) => {
             onClick={handleAddToCart}
             variant="primary"
             size="icon"
-            className="rounded-xl w-10 h-10 shadow-md translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
+            className="rounded-xl w-9 h-9 shadow-md translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300"
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={16} />
           </Button>
         </div>
 

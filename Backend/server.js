@@ -192,7 +192,6 @@ app.use('/api/reviews', reviewRoutes);
 
 // Global Profile Route (Secure)
 app.get('/api/profile/me', protect, sellerController.getProfile); 
-app.get('/api/profile/:email', require('./controllers/userController').getProfileByEmail);
 
 // Base route matching Flask logic
 app.get('/', (req, res) => {

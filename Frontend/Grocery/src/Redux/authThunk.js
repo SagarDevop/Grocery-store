@@ -1,10 +1,10 @@
 import api from "../api/apiConfig";
 import { loginUser, logoutUser } from "./authSlice";
 
-// Refresh user profile based on email
-export const refreshUserProfile = (email) => async (dispatch) => {
-  const url = `/api/profile/${email}`;
-  console.log("Refreshing profile from:", url);
+// Refresh user profile based on current session (token)
+export const refreshUserProfile = () => async (dispatch) => {
+  const url = `/api/user/profile`;
+  console.log("Refreshing session from:", url);
   try {
     const res = await api.get(url);
 
@@ -15,9 +15,9 @@ export const refreshUserProfile = (email) => async (dispatch) => {
     dispatch(loginUser({ user: updatedUser, token }));
   } catch (error) {
     console.error("Failed to refresh user profile:", error);
-    // If user no longer exists (404) or token is bad (401), force logout to break the loop
-    if (error.response?.status === 404 || error.response?.status === 401) {
-      console.warn("Session invalid - clearing stale data.");
+    // If it's a 401 or 404, the session is definitively dead.
+    // The interceptor will broadcast 'session-expired', but we catch it here for immediate cleanup.
+    if (error.response?.status === 401 || error.response?.status === 404) {
       dispatch(logoutUser());
     }
   }
