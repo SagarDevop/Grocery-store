@@ -6,7 +6,7 @@ import axios from 'axios';
  */
 const IS_PRODUCTION = window.location.hostname !== 'localhost';
 const LOCAL_URL = 'http://localhost:5000';
-const PROD_URL = 'https://grocery-store-754w.onrender.com';
+const PROD_URL = 'grocerybackend-production-6888.up.railway.app';
 
 export const BASE_URL = IS_PRODUCTION ? PROD_URL : LOCAL_URL;
 
