@@ -28,6 +28,11 @@ if (!process.env.JWT_SECRET) {
   console.log(`✅ JWT Secret Loaded: ${process.env.JWT_SECRET.substring(0, 3)}...`);
 }
 
+// Mongo URI Robustness Check
+if (process.env.MONGO_URI) {
+  process.env.MONGO_URI = process.env.MONGO_URI.replace(/['"]+/g, '').trim();
+}
+
 
 // Import Routes
 const authRoutes = require('./routes/authRoutes');
