@@ -8,15 +8,23 @@ if (!admin.apps.length) {
     try {
         let privateKey = process.env.FIREBASE_PRIVATE_KEY;
         if (privateKey) {
-            // 1. Remove all quotes and handle escaped newlines
-            privateKey = privateKey.replace(/['"]+/g, '').replace(/\\n/g, '\n').trim();
+            // 1. Extract the raw base64 core
+            // Remove headers, footers, quotes, and ALL whitespace/escapes
+            let core = privateKey
+                .replace(/-----BEGIN PRIVATE KEY-----/, '')
+                .replace(/-----END PRIVATE KEY-----/, '')
+                .replace(/['"\\\s]/g, '')
+                .trim();
             
-            // 2. Remove any accidental trailing backslashes
-            privateKey = privateKey.replace(/\\+$/, '');
+            // 2. Clean any remaining non-base64 characters (just in case)
+            core = core.replace(/[^A-Za-z0-9+/=]/g, '');
             
-            // 3. Normalize header/footer dashes (must be exactly 5)
-            privateKey = privateKey.replace(/-+BEGIN PRIVATE KEY-+/, '-----BEGIN PRIVATE KEY-----');
-            privateKey = privateKey.replace(/-+END PRIVATE KEY-+/, '-----END PRIVATE KEY-----');
+            // 3. Reconstruct the PEM format perfectly
+            // We break it into 64-character lines which is the standard PEM format
+            const lines = core.match(/.{1,64}/g);
+            if (lines) {
+                privateKey = `-----BEGIN PRIVATE KEY-----\n${lines.join('\n')}\n-----END PRIVATE KEY-----`;
+            }
 
             // Safe debugging
             console.log(`Firebase Debug: Key length: ${privateKey.length}, Lines: ${privateKey.split('\n').length}`);
