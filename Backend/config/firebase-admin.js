@@ -8,9 +8,16 @@ if (!admin.apps.length) {
     try {
         let privateKey = process.env.FIREBASE_PRIVATE_KEY;
         if (privateKey) {
-            // Remove all quotes and handle escaped newlines
+            // 1. Remove all quotes and handle escaped newlines
             privateKey = privateKey.replace(/['"]+/g, '').replace(/\\n/g, '\n').trim();
             
+            // 2. Remove any accidental trailing backslashes
+            privateKey = privateKey.replace(/\\+$/, '');
+            
+            // 3. Normalize header/footer dashes (must be exactly 5)
+            privateKey = privateKey.replace(/-+BEGIN PRIVATE KEY-+/, '-----BEGIN PRIVATE KEY-----');
+            privateKey = privateKey.replace(/-+END PRIVATE KEY-+/, '-----END PRIVATE KEY-----');
+
             // Safe debugging
             console.log(`Firebase Debug: Key length: ${privateKey.length}, Lines: ${privateKey.split('\n').length}`);
             console.log(`Firebase Debug: Header: ${privateKey.substring(0, 27)}...`);
